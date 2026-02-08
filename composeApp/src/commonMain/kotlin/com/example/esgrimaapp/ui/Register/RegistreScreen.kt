@@ -1,4 +1,4 @@
-package com.example.esgrimaapp.ui.login
+package com.example.esgrimaapp.ui.Register
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -51,13 +51,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import esgrimaapp.composeapp.generated.resources.Res
-import org.jetbrains.compose.resources.painterResource
-import esgrimaapp.composeapp.generated.resources.logo_app
 import com.example.aprendepalabras.ui.theme.Principal
+import com.example.esgrimaapp.ui.login.LoginScreen
+import com.example.esgrimaapp.ui.login.RegisterScreen
+import esgrimaapp.composeapp.generated.resources.Res
+import esgrimaapp.composeapp.generated.resources.logo_app
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun RegisterScreen(navController: NavController) {
     val scrollState = rememberScrollState()
 
     Surface(
@@ -73,23 +75,7 @@ fun LoginScreen(navController: NavController) {
             verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(Res.drawable.logo_app),
-                contentDescription = "App logo",
-                modifier = Modifier.size(80.dp)
-            )
-            Text(
-                text = "EsgrimaApp",
-                fontWeight = FontWeight.Bold,
-                fontSize = 32.sp,
-                color = Color.Black
-            )
-            Text(
-                text = "Sistema de Gestión de Competiciones",
-                fontSize = 18.sp,
-                color = Color.Black
-            )
-            LoginCard(navController)
+            RegisterCard(navController)
             Text(
                 text = "© 2026 EsgrimaAPP. Gestión de competiciones moderna y eficiente",
                 fontSize = 12.sp,
@@ -100,7 +86,7 @@ fun LoginScreen(navController: NavController) {
 }
 
 @Composable
-fun LoginCard(
+fun RegisterCard(
     navController: NavController
 ) {
     ElevatedCard(
@@ -125,7 +111,7 @@ fun LoginCard(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    text = "Iniciar sesión",
+                    text = "Registro",
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     color = Color.Black
@@ -138,6 +124,25 @@ fun LoginCard(
                 CustomOutlinedTextField(
                     placeholder = "Tu usuario",
                     icon = Icons.Outlined.AccountCircle
+                )
+                Text(
+                    text = "Correo Electronico",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                CustomOutlinedTextField(
+                    placeholder = "Tu correo",
+                    icon = Icons.Outlined.AccountCircle
+                )
+                Text(
+                    text = "Contraseña",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                CustomOutlinedTextField(
+                    placeholder = "Tu contraseña",
+                    icon = Icons.Outlined.Lock,
+                    isPassword = true
                 )
                 Text(
                     text = "Contraseña",
@@ -299,8 +304,8 @@ fun CheckboxWithText() {
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewLoginScreen() {
+fun PreviewRegisterScreen() {
     val navController = rememberNavController()
 
-    LoginScreen(navController)
+    RegisterScreen(navController)
 }
