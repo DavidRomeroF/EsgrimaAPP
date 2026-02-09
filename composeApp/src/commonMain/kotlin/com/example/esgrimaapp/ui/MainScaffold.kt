@@ -34,9 +34,9 @@ import esgrimaapp.composeapp.generated.resources.Res
 import esgrimaapp.composeapp.generated.resources.assignment
 import esgrimaapp.composeapp.generated.resources.flowchart
 import esgrimaapp.composeapp.generated.resources.grid
-import esgrimaapp.composeapp.generated.resources.group
+import esgrimaapp.composeapp.generated.resources.groups
 import esgrimaapp.composeapp.generated.resources.logo_app
-import esgrimaapp.composeapp.generated.resources.personApp
+import esgrimaapp.composeapp.generated.resources.personAdd
 import esgrimaapp.composeapp.generated.resources.swords
 import esgrimaapp.composeapp.generated.resources.trophy
 import kotlinx.coroutines.launch
@@ -99,12 +99,12 @@ fun MainScaffold() {
                     onClick = {/**/}
                 )
                 NavMenuLateral(
-                    icono = Res.drawable.group,
+                    icono = Res.drawable.groups,
                     titulo = "Tiradores",
                     onClick = {/**/}
                 )
                 NavMenuLateral(
-                    icono = Res.drawable.personApp,
+                    icono = Res.drawable.personAdd,
                     titulo = "Árbitros",
                     onClick = {/**/}
                 )
