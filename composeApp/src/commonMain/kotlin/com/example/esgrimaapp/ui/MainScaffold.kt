@@ -30,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.aprendepalabras.ui.theme.Fondo
+import com.example.esgrimaapp.ui.home.DashboardScreen
 import esgrimaapp.composeapp.generated.resources.Res
 import esgrimaapp.composeapp.generated.resources.assignment
 import esgrimaapp.composeapp.generated.resources.flowchart
@@ -135,6 +137,7 @@ fun MainScaffold() {
         }
     ) {
         Scaffold(
+            containerColor = Fondo,
             topBar = {
                 TopAppBar(
                     title = { Text("Mi App") },
@@ -153,7 +156,7 @@ fun MainScaffold() {
                     .padding(padding)
                     .fillMaxSize()
             ) {
-                Text("Hola esta es lo demas")
+                DashboardScreen()
             }
         }
     }
@@ -171,7 +174,7 @@ fun NavMenuLateral(
                 painter = painterResource(icono),
                 contentDescription = null,
                 // Fuerza el color negro o azul para ver si aparece
-                tint = androidx.compose.ui.graphics.Color.Black
+                tint = androidx.compose.ui.graphics.Color.Blue
             )
         },
         label = { Text(titulo) },
