@@ -16,14 +16,14 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     jvm()
-    
+
     js {
         browser()
         binaries.executable()
     }
-    
+
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
@@ -46,7 +46,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.androidx.navigation.compose)
             implementation("org.jetbrains.compose.material:material-icons-extended:1.7.3")
-
+            implementation(libs.voyager.navigator)
+            implementation(libs.voyager.screenModel) // Para manejar lógica (como ViewModels)
+            implementation(libs.voyager.transitions) // Para animaciones entre pantallas        }
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

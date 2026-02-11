@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,133 +50,116 @@ import esgrimaapp.composeapp.generated.resources.trophy
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.CurrentScreen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.Navigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
 fun MainScaffold() {
+    // Navigator interno: empieza en Dashboard
+    Navigator(DashboardScreenContent()) { navigator ->
+        val drawerState = rememberDrawerState(DrawerValue.Closed)
+        val scope = rememberCoroutineScope()
 
-    val innerNavController = rememberNavController()
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
+                    // Cabecera del Drawer
+                    DrawerHeader()
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet(
-                modifier = Modifier
-                    .width(280.dp) // aquí fijas el ancho del drawer (aprox 50% pantalla móvil)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Image(
-                            painter = painterResource(Res.drawable.logo_app),
-                            contentDescription = "App logo",
-                            modifier = Modifier
-                                .size(60.dp)
-                                .padding(10.dp)
-                        )
-                    }
-                    Column {
-                        Row {
-                            Text("Esgrima Manager",
-                                fontSize = 20.sp)
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                    // Ítems del Menú
+                    NavMenuLateral(
+                        icono = Res.drawable.grid,
+                        titulo = "Pantalla principal",
+                        onClick = {
+                            navigator.replaceAll(DashboardScreenContent())
+                            scope.launch { drawerState.close() }
                         }
-                        Row {
-                            Text("NombreUsuario")
+                    )
+
+                    NavMenuLateral(
+                        icono = Res.drawable.swords,
+                        titulo = "Competición",
+                        onClick = {
+                            navigator.replaceAll(CompeticionScreenContent())
+                            scope.launch { drawerState.close() }
                         }
-                    }
+                    )
+                    NavMenuLateral(
+                        icono = Res.drawable.groups,
+                        titulo = "Tiradores",
+                        onClick = {/**/ }
+                    )
+                    NavMenuLateral(
+                        icono = Res.drawable.personAdd,
+                        titulo = "Árbitros",
+                        onClick = {/**/ }
+                    )
+                    NavMenuLateral(
+                        icono = Res.drawable.grid,
+                        titulo = "Grupos(Poules)",
+                        onClick = {/**/ }
+                    )
+                    NavMenuLateral(
+                        icono = Res.drawable.assignment,
+                        titulo = "Resultados",
+                        onClick = {/**/ }
+                    )
+                    NavMenuLateral(
+                        icono = Res.drawable.trophy,
+                        titulo = "Clasificacíon",
+                        onClick = {/**/ }
+                    )
+                    NavMenuLateral(
+                        icono = Res.drawable.flowchart,
+                        titulo = "Tablón (Eliminatorias)",
+                        onClick = {/**/ }
+                    )
+
+
                 }
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-
-                NavMenuLateral(
-                    icono = Res.drawable.grid,
-                    titulo = "Pantalla principal",
-                    onClick = {
-                        innerNavController.navigate("dashboard")
-                        scope.launch { drawerState.close() }
-                    }
-                )
-
-                NavMenuLateral(
-                    icono = Res.drawable.swords,
-                    titulo = "Competición",
-                    onClick = {
-                        innerNavController.navigate("competicion")
-                        scope.launch { drawerState.close() }
-                    }
-                )
-                NavMenuLateral(
-                    icono = Res.drawable.groups,
-                    titulo = "Tiradores",
-                    onClick = {/**/}
-                )
-                NavMenuLateral(
-                    icono = Res.drawable.personAdd,
-                    titulo = "Árbitros",
-                    onClick = {/**/}
-                )
-                NavMenuLateral(
-                    icono = Res.drawable.grid,
-                    titulo = "Grupos(Poules)",
-                    onClick = {/**/}
-                )
-                NavMenuLateral(
-                    icono = Res.drawable.assignment,
-                    titulo = "Resultados",
-                    onClick = {/**/}
-                )
-                NavMenuLateral(
-                    icono = Res.drawable.trophy,
-                    titulo = "Clasificacíon",
-                    onClick = {/**/}
-                )
-                NavMenuLateral(
-                    icono = Res.drawable.flowchart,
-                    titulo = "Tablón (Eliminatorias)",
-                    onClick = {/**/}
-                )
-
-
-
             }
-        }
-    ) {
-        Scaffold(
-            containerColor = Fondo,
-            topBar = {
-                TopAppBar(
-                    title = { Text("Mi App") },
-                    navigationIcon = {
-                        IconButton(
-                            onClick = { scope.launch { drawerState.open() } }
-                        ) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menú")
+        ) {
+            Scaffold(
+                containerColor = Fondo,
+                topBar = {
+                    TopAppBar(
+                        title = { Text("Mi App") },
+                        navigationIcon = {
+                            IconButton(
+                                onClick = { scope.launch { drawerState.open() } }
+                            ) {
+                                Icon(Icons.Default.Menu, contentDescription = "Menú")
+                            }
                         }
-                    }
-                )
-            }
-        ) { padding ->
-            Box(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
-            ) {
-                NavHost(
-                    navController = innerNavController,
-                    startDestination = "dashboard" // Pantalla por defecto al entrar
+                    )
+                }
+            ) { padding -> // Este es el padding que viene del Scaffold
+                Box(
+                    modifier = Modifier
+                        .padding(padding)
+                        .fillMaxSize()
                 ) {
-                    composable("dashboard") { DashboardScreen() }
-                    composable("competicion") { CompeticionScreen() }
-                    // Añade aquí el resto (árbitros, resultados, etc.)
-                }            }
+                    // SUSTITUIMOS EL NAVHOST POR ESTO:
+                    CurrentScreen()
+
+                    /* Explicación:
+                       CurrentScreen() es un "placeholder" dinámico.
+                       Cuando en el Drawer haces 'navigator.push(CompeticionScreenContent())',
+                       Voyager quita lo que haya en este Box y dibuja la nueva pantalla automáticamente.
+                    */
+                }
+            }
         }
     }
 }
@@ -199,5 +183,23 @@ fun NavMenuLateral(
         selected = false,
         onClick = onClick
     )
+}
+
+@Composable
+fun DrawerHeader() {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(Res.drawable.logo_app),
+            contentDescription = null,
+            modifier = Modifier.size(60.dp).padding(10.dp)
+        )
+        Column {
+            Text("Esgrima Manager", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("Admin: Juan Pérez", fontSize = 14.sp) // Aquí usarás los datos de tu tabla de auth
+        }
+    }
 }
 

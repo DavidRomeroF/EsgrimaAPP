@@ -10,22 +10,35 @@ import com.example.esgrimaapp.ui.competicion.CompeticionScreen
 import com.example.esgrimaapp.ui.home.DashboardScreen
 import com.example.esgrimaapp.ui.login.LoginScreen
 import com.example.esgrimaapp.ui.login.LoginViewModel
-import com.example.esgrimaapp.ui.login.RegisterScreen
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 
-
-@Composable
-fun AppNavHost() {
-    val rootNavController = rememberNavController()
-
-    NavHost(navController = rootNavController, startDestination = "login") {
-        // Pantallas sin Scaffold
-        composable("login") {
-            LoginScreen(rootNavController)
-        }
-
-        // La "Pantalla Principal" que contiene el Scaffold, Drawer y el resto de la App
-        composable("homePage") {
-            MainScaffold()
-        }
+// Pantalla de Login
+class LoginScreen : Screen {
+    @Composable
+    override fun Content() {
+        val navigator = LocalNavigator.currentOrThrow
+        // Al tener éxito, reemplazamos todo el stack por el Home
+        LoginScreen(onLoginSuccess = {
+            navigator.replaceAll(MainScreen())
+        })
     }
+}
+
+// Pantalla Principal (Contenedora del Scaffold)
+class MainScreen : Screen {
+    @Composable
+    override fun Content() {
+        MainScaffold()
+    }
+}
+
+// Sub-pantallas del Dashboard
+class DashboardScreenContent : Screen {
+    @Composable override fun Content() { DashboardScreen() }
+}
+
+class CompeticionScreenContent : Screen {
+    @Composable override fun Content() { CompeticionScreen() }
 }

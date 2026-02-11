@@ -15,7 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHost
-import com.example.esgrimaapp.ui.AppNavHost
+import cafe.adriel.voyager.navigator.CurrentScreen
+import cafe.adriel.voyager.navigator.Navigator
+import com.example.esgrimaapp.ui.LoginScreen
 import com.example.esgrimaapp.ui.MainScaffold
 import org.jetbrains.compose.resources.painterResource
 
@@ -23,9 +25,12 @@ import esgrimaapp.composeapp.generated.resources.Res
 import esgrimaapp.composeapp.generated.resources.compose_multiplatform
 
 @Composable
-@Preview
 fun App() {
     MaterialTheme {
-        AppNavHost()
+        // El Navigator de nivel raíz que empieza en el Login
+        Navigator(LoginScreen()) { navigator ->
+            // Puedes añadir transiciones aquí si quieres
+            CurrentScreen()
+        }
     }
 }

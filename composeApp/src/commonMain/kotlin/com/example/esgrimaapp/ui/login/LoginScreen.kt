@@ -55,9 +55,13 @@ import esgrimaapp.composeapp.generated.resources.Res
 import org.jetbrains.compose.resources.painterResource
 import esgrimaapp.composeapp.generated.resources.logo_app
 import com.example.aprendepalabras.ui.theme.Principal
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import com.example.esgrimaapp.ui.MainScaffold
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(onLoginSuccess: () -> Unit) {
     val scrollState = rememberScrollState()
 
     Surface(
@@ -89,7 +93,8 @@ fun LoginScreen(navController: NavController) {
                 fontSize = 18.sp,
                 color = Color.Black
             )
-            LoginCard(navController)
+            LoginCard(onLoginAction = onLoginSuccess)
+
             Text(
                 text = "© 2026 EsgrimaAPP. Gestión de competiciones moderna y eficiente",
                 fontSize = 12.sp,
@@ -101,7 +106,7 @@ fun LoginScreen(navController: NavController) {
 
 @Composable
 fun LoginCard(
-    navController: NavController
+    onLoginAction: () -> Unit
 ) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
@@ -174,7 +179,7 @@ fun LoginCard(
             ) {
                 Button(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = { navController.navigate("homePage") },
+                    onClick = { onLoginAction() },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Principal,
                         contentColor = Color.White
@@ -296,11 +301,3 @@ fun CheckboxWithText() {
     }
 }
 
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewLoginScreen() {
-    val navController = rememberNavController()
-
-    LoginScreen(navController)
-}
