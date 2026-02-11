@@ -3,6 +3,7 @@ package com.example.esgrimaapp.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.navigation.compose.NavHost
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,7 +31,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.aprendepalabras.ui.theme.Fondo
+import com.example.esgrimaapp.ui.competicion.CompeticionScreen
 import com.example.esgrimaapp.ui.home.DashboardScreen
 import esgrimaapp.composeapp.generated.resources.Res
 import esgrimaapp.composeapp.generated.resources.assignment
@@ -50,8 +55,9 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun MainScaffold() {
 
+    val innerNavController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope() // para abrir/cerrar el drawer
+    val scope = rememberCoroutineScope()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -92,13 +98,19 @@ fun MainScaffold() {
                 NavMenuLateral(
                     icono = Res.drawable.grid,
                     titulo = "Pantalla principal",
-                    onClick = {/**/}
+                    onClick = {
+                        innerNavController.navigate("dashboard")
+                        scope.launch { drawerState.close() }
+                    }
                 )
 
                 NavMenuLateral(
                     icono = Res.drawable.swords,
                     titulo = "Competición",
-                    onClick = {/**/}
+                    onClick = {
+                        innerNavController.navigate("competicion")
+                        scope.launch { drawerState.close() }
+                    }
                 )
                 NavMenuLateral(
                     icono = Res.drawable.groups,
@@ -156,8 +168,14 @@ fun MainScaffold() {
                     .padding(padding)
                     .fillMaxSize()
             ) {
-                DashboardScreen()
-            }
+                NavHost(
+                    navController = innerNavController,
+                    startDestination = "dashboard" // Pantalla por defecto al entrar
+                ) {
+                    composable("dashboard") { DashboardScreen() }
+                    composable("competicion") { CompeticionScreen() }
+                    // Añade aquí el resto (árbitros, resultados, etc.)
+                }            }
         }
     }
 }

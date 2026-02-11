@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHost
 import com.example.esgrimaapp.ui.AppNavHost
 import com.example.esgrimaapp.ui.MainScaffold
 import org.jetbrains.compose.resources.painterResource
@@ -25,8 +26,6 @@ import esgrimaapp.composeapp.generated.resources.compose_multiplatform
 @Preview
 fun App() {
     MaterialTheme {
-
-        MainScaffold()
-
+        AppNavHost()
     }
 }

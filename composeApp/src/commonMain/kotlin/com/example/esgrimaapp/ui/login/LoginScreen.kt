@@ -174,7 +174,7 @@ fun LoginCard(
             ) {
                 Button(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = { navController.navigate("main") },
+                    onClick = { navController.navigate("homePage") },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Principal,
                         contentColor = Color.White
