@@ -110,7 +110,7 @@ fun CompeticionLayout(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize() // Importante para que ocupe toda la pantalla
-            .padding(8.dp),
+            .padding(horizontal = 18.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp) // Añade espacio entre bloques automáticamente
     ) {
         // 1. Encabezado
@@ -433,7 +433,7 @@ fun ListaCompeticiones(
             }
         } else {
             // USAMOS Column en lugar de LazyColumn para evitar el crash
-            competiciones.forEach { comp ->
+            competiciones.forEachIndexed { index, comp ->
                 val esActiva = comp.id == idSeleccionado
 
                 Card(
@@ -484,6 +484,9 @@ fun ListaCompeticiones(
                             }
                         }
                     }
+                }
+                if (index < competiciones.size - 1) {
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
         }

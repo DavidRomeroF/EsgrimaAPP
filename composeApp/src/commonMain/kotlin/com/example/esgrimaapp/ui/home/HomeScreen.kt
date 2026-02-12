@@ -56,12 +56,14 @@ fun DashboardScreen() {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // 1. Títulos
         item {
-            Column {
+            Column(
+                modifier = Modifier.padding(18.dp)
+            ) {
                 Text("Bienvenido, Administrador", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Text("Panel de control del sistema de gestión de competiciones de esgrima", color = Color.Gray)
             }

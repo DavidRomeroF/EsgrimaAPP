@@ -57,9 +57,12 @@ import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.example.esgrimaapp.ui.tiradores.TiradoresScreen
+import com.example.esgrimaapp.ui.usuarios.UsuariosScreen
+import esgrimaapp.composeapp.generated.resources.database
 
 
-
+@Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScaffold() {
@@ -86,7 +89,14 @@ fun MainScaffold() {
                             scope.launch { drawerState.close() }
                         }
                     )
-
+                    NavMenuLateral(
+                        icono = Res.drawable.database,
+                        titulo = "Usuarios",
+                        onClick = {
+                            navigator.replaceAll(UsuariosScreen())
+                            scope.launch { drawerState.close() }
+                        }
+                    )
                     NavMenuLateral(
                         icono = Res.drawable.swords,
                         titulo = "Competición",
@@ -98,7 +108,9 @@ fun MainScaffold() {
                     NavMenuLateral(
                         icono = Res.drawable.groups,
                         titulo = "Tiradores",
-                        onClick = {/**/ }
+                        onClick = {
+                            navigator.replaceAll(TiradoresScreen())
+                            scope.launch { drawerState.close() } }
                     )
                     NavMenuLateral(
                         icono = Res.drawable.personAdd,
