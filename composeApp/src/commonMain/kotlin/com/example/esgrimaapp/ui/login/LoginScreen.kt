@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -46,19 +47,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import esgrimaapp.composeapp.generated.resources.Res
 import org.jetbrains.compose.resources.painterResource
 import esgrimaapp.composeapp.generated.resources.logo_app
 import com.example.aprendepalabras.ui.theme.Principal
-import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
-import com.example.esgrimaapp.ui.MainScaffold
 
 @Composable
 fun LoginScreen(onLoginSuccess: () -> Unit) {
@@ -109,7 +103,7 @@ fun LoginCard(
     onLoginAction: () -> Unit
 ) {
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.width(350.dp), // Define un ancho exacto
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),

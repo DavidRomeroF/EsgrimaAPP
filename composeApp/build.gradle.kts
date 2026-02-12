@@ -49,6 +49,7 @@ kotlin {
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.screenModel) // Para manejar lógica (como ViewModels)
             implementation(libs.voyager.transitions) // Para animaciones entre pantallas        }
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -56,10 +57,10 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
         }
 
         jsMain.dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
         }
     }
 }

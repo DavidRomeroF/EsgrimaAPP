@@ -91,7 +91,7 @@ fun MainScaffold() {
                         icono = Res.drawable.swords,
                         titulo = "Competición",
                         onClick = {
-                            navigator.replaceAll(CompeticionScreenContent())
+                            navigator.replaceAll(CompeticionScreen())
                             scope.launch { drawerState.close() }
                         }
                     )
