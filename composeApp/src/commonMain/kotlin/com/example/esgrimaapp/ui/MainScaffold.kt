@@ -57,6 +57,7 @@ import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.example.esgrimaapp.ui.arbitros.ArbitrosScreen
 import com.example.esgrimaapp.ui.tiradores.TiradoresScreen
 import com.example.esgrimaapp.ui.usuarios.UsuariosScreen
 import esgrimaapp.composeapp.generated.resources.database
@@ -115,7 +116,9 @@ fun MainScaffold() {
                     NavMenuLateral(
                         icono = Res.drawable.personAdd,
                         titulo = "Árbitros",
-                        onClick = {/**/ }
+                        onClick = {
+                            navigator.replaceAll(ArbitrosScreen())
+                            scope.launch { drawerState.close() } }
                     )
                     NavMenuLateral(
                         icono = Res.drawable.grid,

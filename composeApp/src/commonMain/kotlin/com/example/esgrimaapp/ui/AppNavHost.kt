@@ -38,7 +38,3 @@ class MainScreen : Screen {
 class DashboardScreenContent : Screen {
     @Composable override fun Content() { DashboardScreen() }
 }
-
-class CompeticionScreenContent : Screen {
-    @Composable override fun Content() { CompeticionScreen() }
-}

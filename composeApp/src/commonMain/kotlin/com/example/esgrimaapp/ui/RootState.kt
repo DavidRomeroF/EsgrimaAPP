@@ -9,20 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-// Este es el estado "Maestro" que vive en el ViewModel principal o Navegador
-data class AppUIState(
-    val usuarioState: UsuarioUIState = UsuarioUIState(),
-    val competicionState: CompeticionUIState = CompeticionUIState(),
-    val tiradoresState: TiradoresUIState = TiradoresUIState(),
-    val pantallaActual: Pantalla = Pantalla.Competiciones
-)
-
-sealed class Pantalla {
-    object Administracion : Pantalla()
-    object Competiciones : Pantalla()
-    data class DetalleCompeticion(val id: String) : Pantalla()
-}
-
 // Este objeto es único para toda la App
 object FencingRepository {
     // --- Usuarios Globales ---
@@ -40,6 +26,10 @@ object FencingRepository {
     // --- Relación: Competición -> Tiradores Inscritos ---
     private val _inscripciones = MutableStateFlow<Map<String, List<Usuario>>>(emptyMap())
     val inscripciones = _inscripciones.asStateFlow()
+
+    // Relación: Competición -> Árbitros Inscritos
+    private val _arbitrosInscritos = MutableStateFlow<Map<String, List<Usuario>>>(emptyMap())
+    val arbitrosInscritos = _arbitrosInscritos.asStateFlow()
 
     // Funciones de Usuarios
     fun agregarUsuario(usuario: Usuario) { _usuariosGlobales.update { it + usuario } }
@@ -81,6 +71,20 @@ object FencingRepository {
         _inscripciones.update { actual ->
             val listaActual = actual[compId] ?: emptyList()
             actual + (compId to listaActual.filterNot { it.numeroFederacion == numFede })
+        }
+    }
+
+    fun inscribirArbitro(compId: String, usuario: Usuario) {
+        _arbitrosInscritos.update { actual ->
+            val lista = actual[compId] ?: emptyList()
+            actual + (compId to (lista + usuario))
+        }
+    }
+
+    fun desapuntarArbitro(compId: String, numFede: String) {
+        _arbitrosInscritos.update { actual ->
+            val lista = actual[compId] ?: emptyList()
+            actual + (compId to lista.filterNot { it.numeroFederacion == numFede })
         }
     }
 }

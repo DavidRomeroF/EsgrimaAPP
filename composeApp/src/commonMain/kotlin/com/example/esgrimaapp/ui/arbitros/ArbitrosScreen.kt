@@ -1,7 +1,6 @@
-package com.example.esgrimaapp.ui.tiradores
+package com.example.esgrimaapp.ui.arbitros
 
 import ArbitroViewModel
-import TiradoresViewModel
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -54,11 +53,11 @@ import cafe.adriel.voyager.core.screen.Screen
 import com.example.aprendepalabras.ui.theme.CartaTiradores
 import com.example.esgrimaapp.data.Usuario
 
-class TiradoresScreen : Screen {
+class ArbitrosScreen : Screen {
     @Composable
     override fun Content() {
         // En KMP con Voyager, esto es lo que evita el crash del Factory
-        val viewModel = rememberScreenModel { TiradoresViewModel() }
+        val viewModel = rememberScreenModel { ArbitroViewModel() }
 
         // Pasamos el estado recolectado para que el Layout sea "puro"
         val uiState by viewModel.uiState.collectAsState()
@@ -68,7 +67,7 @@ class TiradoresScreen : Screen {
             modifier = Modifier.fillMaxSize()
         ) { paddingValues ->
             Box(modifier = Modifier.padding(paddingValues)) {
-                TiradoresLayout(uiState, viewModel)
+                ArbitrosLayout(uiState, viewModel)
             }
         }
     }
@@ -76,16 +75,16 @@ class TiradoresScreen : Screen {
 
 @Preview(showSystemUi = true)
 @Composable
-fun TiradoresLayout(
-    uiState: TiradoresUIState,
-    viewModel: TiradoresViewModel
+fun ArbitrosLayout(
+    uiState: ArbitrosUIState,
+    viewModel: ArbitroViewModel
 ) {
     // DIÁLOGO SELECTOR (Solo si hay activa, por seguridad)
     if (uiState.mostrarFormulario && uiState.hayCompeticionActiva) {
         DialogoSelectorTiradores(
             usuariosGlobales = uiState.usuariosDisponibles,
-            tiradoresYaInscritos = uiState.listaTiradoresInscritos,
-            onSeleccionar = { persona -> viewModel.inscribirTirador(persona) },
+            tiradoresYaInscritos = uiState.listaArbitrosInscritos,
+            onSeleccionar = { persona -> viewModel.inscribirArbitro(persona) },
             onDismiss = { viewModel.toggleSelector(false) }
         )
     }
@@ -98,7 +97,7 @@ fun TiradoresLayout(
         item {
             Column(modifier = Modifier.padding(vertical = 8.dp)) {
                 Text(
-                    text = "Participantes",
+                    text = "Árbitros de la Competición",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -130,7 +129,7 @@ fun TiradoresLayout(
                 ) {
                     Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text(text = "Inscribir Tirador")
+                    Text(text = "Añadir Arbitro")
                 }
             }
         }
@@ -139,8 +138,8 @@ fun TiradoresLayout(
         item {
             if (uiState.hayCompeticionActiva) {
                 SeccionTiradoresInscritos(
-                    inscritos = uiState.listaTiradoresInscritos,
-                    onRemover = { id -> viewModel.removerTiradorDeCompeticion(id) }
+                    inscritos = uiState.listaArbitrosInscritos,
+                    onRemover = { id -> viewModel.removerArbitroDeCompeticion(id) }
                 )
             } else {
                 // Mensaje amigable si no hay nada seleccionado
@@ -149,7 +148,7 @@ fun TiradoresLayout(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF7ED))
                 ) {
                     Text(
-                        "Por favor, ve al apartado de Competiciones y selecciona una para empezar a inscribir tiradores.",
+                        "Por favor, ve al apartado de Competiciones y selecciona una para empezar a inscribir árbitros.",
                         modifier = Modifier.padding(16.dp),
                         color = Color(0xFF9A3412),
                         textAlign = TextAlign.Center
@@ -169,7 +168,7 @@ fun SeccionTiradoresInscritos(
         val esMovil = maxWidth < 750.dp
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = "Participantes Inscritos (${inscritos.size})",
+                text = "Árbitros Asignádos (${inscritos.size})",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -189,7 +188,7 @@ fun SeccionTiradoresInscritos(
 
             if (inscritos.isEmpty()) {
                 Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-                    Text("No hay tiradores inscritos todavía", color = Color.Gray)
+                    Text("No hay árbitros en esta competición", color = Color.Gray)
                 }
             }
         }
@@ -292,7 +291,7 @@ fun TiradorInscritoCard(
             ) {
                 Icon(
                     imageVector = Icons.Default.PersonRemove,
-                    contentDescription = "Desapuntar",
+                    contentDescription = "Eliminar",
                     tint = Color(0xFFEF4444),
                     modifier = Modifier.size(20.dp)
                 )
@@ -322,7 +321,7 @@ fun DialogoSelectorTiradores(
             Column(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
                 if (disponibles.isEmpty()) {
                     Text(
-                        "No hay usuarios disponibles. Crea nuevos usuarios en la sección de Administración.",
+                        "No hay árbitros disponibles para añadir Crea nuevos usuarios en la sección de Administración.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray
                     )

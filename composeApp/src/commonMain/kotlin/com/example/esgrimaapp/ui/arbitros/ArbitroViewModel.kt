@@ -2,6 +2,7 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.example.esgrimaapp.data.Usuario
 import com.example.esgrimaapp.ui.FencingRepository
+import com.example.esgrimaapp.ui.arbitros.ArbitrosUIState
 import com.example.esgrimaapp.ui.tiradores.TiradoresUIState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,8 +11,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 // Ya no necesitamos pasarle el ID por constructor si lo lee del Repo
-class TiradoresViewModel : ScreenModel {
-    private val _uiState = MutableStateFlow(TiradoresUIState())
+class ArbitroViewModel : ScreenModel {
+    private val _uiState = MutableStateFlow(ArbitrosUIState())
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -20,25 +21,34 @@ class TiradoresViewModel : ScreenModel {
                 FencingRepository.competiciones,
                 FencingRepository.idCompeticionActiva,
                 FencingRepository.usuariosGlobales,
-                FencingRepository.inscripciones,    // Tiradores
-                FencingRepository.arbitrosInscritos // Árbitros
+                FencingRepository.inscripciones,
+                FencingRepository.arbitrosInscritos
             ) { listaComp, idActivo, globales, inscritosTiradores, inscritosArbitros ->
 
                 val compActiva = listaComp.find { it.id == idActivo }
+                val armaRequerida = compActiva?.arma // Ejemplo: "Florete", "Espada" o "Sable"
+
                 val tiradoresActuales = inscritosTiradores[idActivo] ?: emptyList()
                 val arbitrosActuales = inscritosArbitros[idActivo] ?: emptyList()
 
-                // APLICAMOS EL FILTRO: No puede estar en ninguna de las dos listas
-                val disponiblesParaTirar = globales.filter { usuario ->
-                    tiradoresActuales.none { it.numeroFederacion == usuario.numeroFederacion } &&
+                // FILTRO TRIPLE:
+                // 1. Perfil: Debe ser árbitro.
+                // 2. Especialidad: Debe tener el arma de la competición en su lista de especialidades.
+                // 3. Exclusión: No debe estar ya inscrito (ni como tirador ni como árbitro).
+                val disponiblesParaArbitrar = globales.filter { usuario ->
+                    val tieneEspecialidad = usuario.especialidades.contains(armaRequerida)
+
+                    usuario.esArbitro &&
+                            tieneEspecialidad && // <--- VALIDACIÓN DE ARMA
+                            tiradoresActuales.none { it.numeroFederacion == usuario.numeroFederacion } &&
                             arbitrosActuales.none { it.numeroFederacion == usuario.numeroFederacion }
                 }
 
-                TiradoresUIState(
-                    usuariosDisponibles = disponiblesParaTirar, // Usamos la lista filtrada
+                ArbitrosUIState(
+                    usuariosDisponibles = disponiblesParaArbitrar,
                     nombreCompeticionActiva = compActiva?.nombre,
                     hayCompeticionActiva = idActivo != null,
-                    listaTiradoresInscritos = tiradoresActuales,
+                    listaArbitrosInscritos = arbitrosActuales,
                     mostrarFormulario = _uiState.value.mostrarFormulario
                 )
             }.collect { nuevoEstado ->
@@ -47,24 +57,22 @@ class TiradoresViewModel : ScreenModel {
         }
     }
 
-    fun inscribirTirador(usuario: Usuario) {
-        // Obtenemos el ID activo directamente del repositorio
+    fun inscribirArbitro(usuario: Usuario) {
         val idActivo = FencingRepository.idCompeticionActiva.value
         if (idActivo != null) {
-            FencingRepository.inscribirTirador(idActivo, usuario)
+            FencingRepository.inscribirArbitro(idActivo, usuario)
             toggleSelector(false)
         }
     }
 
-    fun removerTiradorDeCompeticion(numFede: String) {
+    fun removerArbitroDeCompeticion(numFede: String) {
         val idActivo = FencingRepository.idCompeticionActiva.value
         if (idActivo != null) {
-            FencingRepository.desapuntarTirador(idActivo, numFede)
+            FencingRepository.desapuntarArbitro(idActivo, numFede)
         }
     }
 
     fun toggleSelector(mostrar: Boolean) {
-        // Solo permitimos abrir si realmente hay una competición activa
         if (_uiState.value.hayCompeticionActiva) {
             _uiState.update { it.copy(mostrarFormulario = mostrar) }
         }
