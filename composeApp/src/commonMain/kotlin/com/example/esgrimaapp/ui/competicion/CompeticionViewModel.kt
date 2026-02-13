@@ -1,19 +1,40 @@
 package com.example.esgrimaapp.ui.competicion
 
 import cafe.adriel.voyager.core.model.ScreenModel
+import cafe.adriel.voyager.core.model.screenModelScope
 import com.example.esgrimaapp.data.Competicion
+import com.example.esgrimaapp.ui.FencingRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlin.random.Random
 import kotlin.time.Clock
 
-class CompeticionViewModel: ScreenModel {
+class CompeticionViewModel : ScreenModel {
     private val _uiState = MutableStateFlow(CompeticionUIState())
     val uiState = _uiState.asStateFlow()
+
+    init {
+        // Observamos el Repositorio para que la lista y la selección persistan
+        screenModelScope.launch {
+            // Combinamos la lista de competiciones y el ID seleccionado del Repo
+            combine(
+                FencingRepository.competiciones,
+                FencingRepository.idCompeticionActiva
+            ) { lista, idActivo ->
+                _uiState.update { it.copy(
+                    listaCompeticiones = lista,
+                    idCompeticionActiva = idActivo // <--- Esto es lo que faltaba
+                ) }
+            }.collect()
+        }
+    }
 
     fun toggleFormulario() {
         _uiState.update { currentState ->
@@ -84,16 +105,13 @@ class CompeticionViewModel: ScreenModel {
     }
 
     fun crearNuevaCompeticion() {
-        // 1. Validamos que los campos mínimos no estén vacíos
+        println("Intentando crear competición...") // DEBUG
         if (uiState.value.nombre.isBlank() || uiState.value.fechaTexto.isBlank()) {
-            // Podrías manejar un error aquí si quisieras
+            println("Validación fallida: Nombre o Fecha vacíos") // DEBUG
             return
         }
-        val nuevoId = "comp_${Clock.System.now().toEpochMilliseconds()}"
-
-        // 2. Creamos el nuevo objeto de competición
         val nueva = Competicion(
-            id = "comp_${Random.nextLong()}", // Opción rápida sin librerías externas
+            id = "comp_${Clock.System.now().toEpochMilliseconds()}",
             nombre = uiState.value.nombre,
             entidad = uiState.value.entidadOrganizadora,
             fecha = uiState.value.fechaTexto,
@@ -101,16 +119,11 @@ class CompeticionViewModel: ScreenModel {
             arma = uiState.value.arma
         )
 
-        // 3. Actualizamos la lista y limpiamos el formulario
-        _uiState.update { currentState ->
-            currentState.copy(
-                listaCompeticiones = currentState.listaCompeticiones + nueva,
-                // Al crearla, podemos hacer que sea la activa automáticamente
-                idCompeticionActiva = nueva.id
-            )
-        }
+        // CAMBIO: Guardamos en el repo central
+        FencingRepository.agregarCompeticion(nueva)
+        FencingRepository.setCompeticionActiva(nueva.id) // Directo al repo
 
-        // 4. Resetear los campos para que el formulario quede vacío
+        println("Competición creada y activada: ${nueva.nombre}") // DEBUG
         limpiarFormulario()
     }
 
@@ -127,8 +140,8 @@ class CompeticionViewModel: ScreenModel {
     }
 
     fun seleccionarCompeticion(id: String) {
-        // Solo cambiamos datos, no llamamos a funciones de UI
-        _uiState.update { it.copy(idCompeticionActiva = id) }
+        // 1. Actualizamos el estado local para que la UI de competiciones lo resalte
+        FencingRepository.setCompeticionActiva(id)
     }
 
     fun eliminarCompeticion(id: String) {

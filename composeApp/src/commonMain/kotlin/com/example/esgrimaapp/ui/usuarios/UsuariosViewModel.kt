@@ -1,18 +1,31 @@
 package com.example.esgrimaapp.ui.usuarios
 
 import cafe.adriel.voyager.core.model.ScreenModel
+import cafe.adriel.voyager.core.model.screenModelScope
 import com.example.esgrimaapp.data.Competicion
 import com.example.esgrimaapp.data.Usuario
+import com.example.esgrimaapp.ui.FencingRepository
 import com.example.esgrimaapp.ui.tiradores.TiradoresUIState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 import kotlin.time.Clock
 
-class UsuariosViewModel: ScreenModel {
+class UsuariosViewModel : ScreenModel {
     private val _uiState = MutableStateFlow(UsuarioUIState())
     val uiState = _uiState.asStateFlow()
+
+    init {
+        // IMPORTANTE: Nos suscribimos al repositorio para que la lista
+        // de la tabla se actualice sola si añadimos/borramos algo
+        screenModelScope.launch {
+            FencingRepository.usuariosGlobales.collect { lista ->
+                _uiState.update { it.copy(listaUsuarios = lista) }
+            }
+        }
+    }
 
     fun toggleFormulario() {
         _uiState.update { currentState ->
@@ -67,14 +80,7 @@ class UsuariosViewModel: ScreenModel {
             especialidades = estado.especialidades.toList()
         )
 
-        // 3. Persistencia (Simulada aquí, pero deberías llamar a tu repositorio/DB)
-        // Recuerda que cada administrador debe tener sus propios datos
-        _uiState.update { currentState ->
-            currentState.copy(
-                listaUsuarios = currentState.listaUsuarios + nuevo,
-                mostrarFormulario = false // Cerramos el formulario tras éxito
-            )
-        }
+        FencingRepository.agregarUsuario(nuevo)
 
         // 4. Limpiar datos sensibles
         limpiarFormulario()
@@ -108,16 +114,7 @@ class UsuariosViewModel: ScreenModel {
         }
     }
     fun eliminarUsuario(numFede: String) {
-        // 1. Filtramos la lista eliminando el usuario con ese número de federado
-        _uiState.update { currentState ->
-            val nuevaLista = currentState.listaUsuarios.filterNot { it.numeroFederacion == numFede }
-            currentState.copy(listaUsuarios = nuevaLista)
-        }
-
-        // 2. Aquí llamarías a tu Repositorio para borrarlo de la base de datos:
-        // viewModelScope.launch {
-        //    repository.deleteUser(numFede, adminId = currentAdminId)
-        // }
+        FencingRepository.eliminarUsuario(numFede)
     }
 
     fun iniciarEdicion(usuario: Usuario) {
@@ -135,19 +132,19 @@ class UsuariosViewModel: ScreenModel {
     }
 
     fun guardarEdicion(numFede: String) {
-        _uiState.update { estado ->
-            val listaActualizada = estado.listaUsuarios.map {
-                if (it.numeroFederacion == numFede) {
-                    it.copy(
-                        nombre = estado.editNombre,
-                        club = estado.editClub,
-                        esArbitro = estado.editEsArbitro,
-                        especialidades = estado.editEspecialidades.toList()
-                    )
-                } else it
-            }
-            estado.copy(listaUsuarios = listaActualizada, idUsuarioEditando = null)
-        }
+        val estado = uiState.value
+        val usuarioEditado = Usuario(
+            numeroFederacion = numFede,
+            nombre = estado.editNombre,
+            club = estado.editClub,
+            esArbitro = estado.editEsArbitro,
+            especialidades = estado.editEspecialidades.toList()
+        )
+
+        // CAMBIO CLAVE: Actualizamos en el repositorio
+        FencingRepository.actualizarUsuario(usuarioEditado)
+
+        _uiState.update { it.copy(idUsuarioEditando = null) }
     }
 
     fun onEditNombre(nuevo: String) {
