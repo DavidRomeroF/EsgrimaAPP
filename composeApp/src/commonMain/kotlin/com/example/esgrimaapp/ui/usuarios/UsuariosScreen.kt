@@ -7,7 +7,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,27 +22,27 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Gavel
-import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Divider
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -60,6 +62,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import com.example.aprendepalabras.ui.theme.CartaTiradores
@@ -93,8 +96,6 @@ fun UsuarioLayout(
     uiState: UsuarioUIState,
     viewModel: UsuariosViewModel
 ) {
-
-
     LazyColumn(
         modifier = Modifier
             .fillMaxSize() // Importante para que ocupe toda la pantalla
@@ -112,7 +113,6 @@ fun UsuarioLayout(
                 Text("Gestiona las personas que pueden participar como tiradores y/o árbitros")
             }
         }
-
 
         // 2. Botón de acción (Nuevo usuario)
         item {
@@ -156,10 +156,9 @@ fun UsuarioLayout(
         }
 
         item {
-            TablaUsuarios(
+            SeccionListaUsuarios(
                 usuarios = uiState.listaUsuarios,
                 onEliminar = { id -> viewModel.eliminarUsuario(id) },
-                onEditar = { usuario -> viewModel.iniciarEdicion(usuario) }, // <--- ESTO ES LO QUE DEBES PONER
                 uiState = uiState,
                 viewModel = viewModel
             )
@@ -428,6 +427,51 @@ fun PuedeSerArbitro(uiState: UsuarioUIState,viewModel: UsuariosViewModel){
 }
 
 @Composable
+fun SeccionListaUsuarios(
+    usuarios: List<Usuario>,
+    onEliminar: (String) -> Unit,
+    uiState: UsuarioUIState,
+    viewModel: UsuariosViewModel
+) {
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val esMovil = maxWidth < 750.dp
+
+        if (esMovil) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (usuarios.isEmpty()) {
+                    MensajeListaVacia()
+                } else {
+                    usuarios.forEach { usuario ->
+                        UsuarioCardMovil(
+                            usuario = usuario,
+                            onEliminar = onEliminar,
+                            onEditar = { viewModel.iniciarEdicion(usuario) }
+                        )
+                    }
+                }
+            }
+
+            // Si estamos editando en móvil, mostramos el formulario por encima
+            if (uiState.idUsuarioEditando != null) {
+                FormularioEdicionMovil(uiState, viewModel)
+            }
+
+        } else {
+            // MODO ESCRITORIO (Tu tabla profesional que ya tenemos)
+            TablaUsuarios(
+                usuarios = usuarios,
+                onEliminar = onEliminar,
+                onEditar = { viewModel.iniciarEdicion(it) },
+                uiState = uiState,
+                viewModel = viewModel
+            )
+        }
+    }
+}
+@Composable
 fun TablaUsuarios(
     usuarios: List<Usuario>,
     onEliminar: (String) -> Unit,
@@ -445,22 +489,71 @@ fun TablaUsuarios(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFF8FAFC), RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                .background(
+                    Color(0xFFF8FAFC),
+                    RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+                )
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Nombre", Modifier.weight(2f), fontWeight = FontWeight.Bold, color = Color(0xFF64748B))
-            Text("Club", Modifier.weight(2f), fontWeight = FontWeight.Bold, color = Color(0xFF64748B))
-            Text("Nº Federado", Modifier.weight(1.5f), fontWeight = FontWeight.Bold, color = Color(0xFF64748B))
-            Text("Roles", Modifier.weight(1.5f), fontWeight = FontWeight.Bold, color = Color(0xFF64748B))
-            Text("Especialidades", Modifier.weight(2f), fontWeight = FontWeight.Bold, color = Color(0xFF64748B))
-            Text("Acciones", Modifier.weight(1f), fontWeight = FontWeight.Bold, color = Color(0xFF64748B), textAlign = TextAlign.Center)
+            Text(
+                "Nombre",
+                Modifier.weight(2f),
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF64748B)
+            )
+            Text(
+                "Club",
+                Modifier.weight(2f),
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF64748B)
+            )
+            Text(
+                "Nº Federado",
+                Modifier.weight(1.5f),
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF64748B)
+            )
+            Text(
+                "Roles",
+                Modifier.weight(1.5f),
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF64748B)
+            )
+            Text(
+                "Especialidades",
+                Modifier.weight(2f),
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF64748B)
+            )
+            Text(
+                "Acciones",
+                Modifier.weight(1f),
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF64748B),
+                textAlign = TextAlign.Center
+            )
         }
 
         Divider(color = Color(0xFFE0E0E0))
 
         if (usuarios.isEmpty()) {
-            // ... (Tu código de Box para lista vacía - se mantiene igual) ...
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(40.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        painter = painterResource(Res.drawable.database),
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = Color(0xFF94A3B8)
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Text("No hay personas registradas en la base de datos", fontWeight = FontWeight.Medium)
+                    Text("Añade la primera persona para comenzar", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+                }
+            }
         } else {
             usuarios.forEach { usuario ->
                 // COMPARACIÓN CLAVE: Verificamos si este usuario es el que se está editando
@@ -480,6 +573,145 @@ fun TablaUsuarios(
     }
 }
 
+@Composable
+fun UsuarioCardMovil(
+    usuario: Usuario,
+    onEliminar: (String) -> Unit,
+    onEditar: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(usuario.nombre, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Text("${usuario.club} • Fed: ${usuario.numeroFederacion}", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    TagRol("Tirador", Color(0xFFDBEAFE), Color(0xFF2563EB), Icons.Default.Person)
+                    if (usuario.esArbitro) {
+                        TagRol("Árbitro", Color(0xFFF3E8FF), Color(0xFF9333EA), Icons.Default.Shield)
+                    }
+                }
+            }
+
+            // Acciones rápidas
+            Row {
+                IconButton(onClick = onEditar) {
+                    Icon(Icons.Default.Edit, "Editar", tint = Color(0xFF2563EB))
+                }
+                IconButton(onClick = { onEliminar(usuario.numeroFederacion) }) {
+                    Icon(Icons.Default.Delete, "Borrar", tint = Color(0xFFEF4444))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FormularioEdicionMovil(uiState: UsuarioUIState, viewModel: UsuariosViewModel) {
+    // Usamos un Dialog o un Box que ocupe toda la pantalla para que sea cómodo
+    Dialog(onDismissRequest = { viewModel.cancelarEdicion() }) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text("Editar Persona", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+
+                CampoTexto("Nombre Completo", uiState.editNombre) { viewModel.onEditNombre(it) }
+                CampoTexto("Club", uiState.editClub) { viewModel.onEditClub(it) }
+
+                Text("Nº Federado: ${uiState.idUsuarioEditando}", color = Color.Gray)
+
+                Divider()
+
+                // LOGICA DE ÁRBITRO (Igual que en el formulario de creación)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = uiState.editEsArbitro, onCheckedChange = { viewModel.onEditEsArbitro(it) })
+                    Text("Es Árbitro")
+                }
+
+                if (uiState.editEsArbitro) {
+                    Text("Especialidades:", fontWeight = FontWeight.Bold)
+                    // Usamos horizontalArrangement en lugar de mainAxisSpacing
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        listOf("Espada", "Florete", "Sable").forEach { esp ->
+                            val seleccionada = uiState.editEspecialidades.contains(esp)
+
+                            // Usamos un diseño de Chip manual para mayor control
+                            Surface(
+                                onClick = { viewModel.onEditEspecialidadToggle(esp) },
+                                shape = RoundedCornerShape(20.dp),
+                                color = if (seleccionada) Color(0xFFF3E8FF) else Color.White,
+                                border = BorderStroke(1.dp, if (seleccionada) Color(0xFF9333EA) else Color.LightGray)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    if (seleccionada) {
+                                        Icon(Icons.Default.Check, null, modifier = Modifier.size(16.dp), tint = Color(0xFF9333EA))
+                                        Spacer(Modifier.width(4.dp))
+                                    }
+                                    Text(
+                                        text = esp,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = if (seleccionada) Color(0xFF9333EA) else Color.Black
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = { viewModel.cancelarEdicion() }) { Text("Cancelar") }
+                    Button(
+                        onClick = { viewModel.guardarEdicion(uiState.idUsuarioEditando!!) },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
+                    ) {
+                        Text("Guardar Cambios")
+                    }
+                }
+            }
+        }
+    }
+}
+@Composable
+fun MensajeListaVacia() {
+    Box(
+        modifier = Modifier.fillMaxWidth().padding(40.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                painter = painterResource(Res.drawable.database),
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = Color(0xFF94A3B8)
+            )
+            Spacer(Modifier.height(16.dp))
+            Text("No hay personas registradas", fontWeight = FontWeight.Medium)
+            Text("Añade la primera para comenzar", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
 @Composable
 fun FilaUsuario(
     usuario: Usuario,
