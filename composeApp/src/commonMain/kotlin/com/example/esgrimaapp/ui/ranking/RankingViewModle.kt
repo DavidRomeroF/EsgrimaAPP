@@ -5,6 +5,7 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import com.example.esgrimaapp.data.EstadisticasTirador
 import com.example.esgrimaapp.data.EstadoAsalto
 import com.example.esgrimaapp.ui.FencingRepository
+import com.example.esgrimaapp.utilits.RankingLogic
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
@@ -16,46 +17,25 @@ class RankingViewModel : ScreenModel {
     val ranking = _ranking.asStateFlow()
 
     init {
-        calcularRanking()
-    }
-
-    fun calcularRanking() {
         screenModelScope.launch {
-            // Obtenemos los asaltos y tiradores del repositorio
+            // Especificamos el tipo de salida de combine: <List<EstadisticasTirador>>
             combine(
                 FencingRepository.asaltosCompeticion,
-                FencingRepository.idCompeticionActiva,
-                FencingRepository.inscripciones
-            ) { todosLosAsaltos, idActivo, todosLosTiradores ->
-                val asaltosActuales = todosLosAsaltos[idActivo] ?: return@combine
-                val tiradoresActuales = todosLosTiradores[idActivo] ?: return@combine
+                FencingRepository.inscripciones,
+                FencingRepository.idCompeticionActiva
+            ) { asaltos, inscripciones, idActivo ->
 
-                // Inicializamos mapa de estadísticas
-                val statsMap = tiradoresActuales.associateWith { EstadisticasTirador(it) }.toMutableMap()
+                if (idActivo == null) return@combine emptyList<EstadisticasTirador>()
 
-                // Procesamos solo asaltos finalizados
-                asaltosActuales.filter { it.estado == EstadoAsalto.FINALIZADO }.forEach { asalto ->
-                    val sA = statsMap[asalto.tiradorA]!!
-                    val sB = statsMap[asalto.tiradorB]!!
+                // Llamamos a la lógica y forzamos la recolección del primer valor emitido
+                // Aquí es donde el compilador solía fallar al inferir 'R'
+                val rankingProcesado = RankingLogic.procesar(asaltos, inscripciones)[idActivo]
 
-                    statsMap[asalto.tiradorA] = sA.copy(
-                        victorias = sA.victorias + if (asalto.tocadosA > asalto.tocadosB) 1 else 0,
-                        derrotas = sA.derrotas + if (asalto.tocadosA < asalto.tocadosB) 1 else 0,
-                        tocadosDados = sA.tocadosDados + asalto.tocadosA,
-                        tocadosRecibidos = sA.tocadosRecibidos + asalto.tocadosB
-                    )
+                rankingProcesado ?: emptyList<EstadisticasTirador>()
 
-                    statsMap[asalto.tiradorB] = sB.copy(
-                        victorias = sB.victorias + if (asalto.tocadosB > asalto.tocadosA) 1 else 0,
-                        derrotas = sB.derrotas + if (asalto.tocadosB < asalto.tocadosA) 1 else 0,
-                        tocadosDados = sB.tocadosDados + asalto.tocadosB,
-                        tocadosRecibidos = sB.tocadosRecibidos + asalto.tocadosA
-                    )
-                }
-
-                // Ordenamos por índice de mayor a menor
-                _ranking.value = statsMap.values.sortedByDescending { it.indice }
-            }.collect()
+            }.collect { listaCalculada ->
+                _ranking.value = listaCalculada
+            }
         }
     }
 }

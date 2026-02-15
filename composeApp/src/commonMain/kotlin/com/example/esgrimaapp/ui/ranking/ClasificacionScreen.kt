@@ -37,8 +37,9 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import com.example.esgrimaapp.data.EstadisticasTirador
+import kotlinx.datetime.format.Padding
 
-class ClasificacionScreen : Screen {
+class RankingScreen : Screen {
     @Composable
     override fun Content() {
         val viewModel = rememberScreenModel { RankingViewModel() }
@@ -48,35 +49,43 @@ class ClasificacionScreen : Screen {
             modifier = Modifier.fillMaxSize(),
             containerColor = Color(0xFFF8FAFC) // Fondo gris muy claro profesional
         ) { padding ->
-            Column(
-                modifier = Modifier
-                    .padding(padding)
-                    .padding(16.dp)
-                    .fillMaxSize()
-            ) {
-                Text(
-                    text = "Clasificación",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Ranking de tiradores basado en victorias y diferencia de tocados",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
-
-                Spacer(Modifier.height(24.dp))
-
-                if (ranking.isEmpty()) {
-                    // Estado vacío (image_00f308.png)
-                    PantallaSinResultados()
-                } else {
-                    // Tabla de ranking (image_00f385.png)
-                    TablaRanking(ranking)
-                    Spacer(Modifier.height(16.dp))
-                    LeyendaRanking()
-                }
+            Box(
+                modifier = Modifier.padding(padding).fillMaxSize(),
+            ){
+                PantallaRanking(ranking)
             }
+        }
+    }
+}
+
+@Composable
+fun PantallaRanking(ranking: List<EstadisticasTirador>){
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxSize()
+    ) {
+        Text(
+            text = "Clasificación",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = "Ranking de tiradores basado en victorias y diferencia de tocados",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        if (ranking.isEmpty()) {
+            // Estado vacío (image_00f308.png)
+            PantallaSinResultados()
+        } else {
+            // Tabla de ranking (image_00f385.png)
+            TablaRanking(ranking)
+            Spacer(Modifier.height(16.dp))
+            LeyendaRanking()
         }
     }
 }

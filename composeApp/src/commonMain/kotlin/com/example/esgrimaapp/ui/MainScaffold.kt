@@ -60,9 +60,10 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.example.esgrimaapp.ui.Register.RegisterScreen
 import com.example.esgrimaapp.ui.arbitros.ArbitrosScreen
 import com.example.esgrimaapp.ui.asaltosGrupos.ResultadosScreen
+import com.example.esgrimaapp.ui.clasificacion.ClasificacionScreen
 import com.example.esgrimaapp.ui.poules.PoulesLayout
 import com.example.esgrimaapp.ui.poules.PoulesScreen
-import com.example.esgrimaapp.ui.ranking.ClasificacionScreen
+import com.example.esgrimaapp.ui.ranking.RankingScreen
 import com.example.esgrimaapp.ui.tiradores.TiradoresScreen
 import com.example.esgrimaapp.ui.usuarios.UsuariosScreen
 import esgrimaapp.composeapp.generated.resources.database
@@ -143,13 +144,15 @@ fun MainScaffold() {
                         icono = Res.drawable.trophy,
                         titulo = "Clasificacíon",
                         onClick = {
-                            navigator.replaceAll(ClasificacionScreen())
+                            navigator.replaceAll(RankingScreen())
                             scope.launch { drawerState.close() } }
                     )
                     NavMenuLateral(
                         icono = Res.drawable.flowchart,
                         titulo = "Tablón (Eliminatorias)",
-                        onClick = {/**/ }
+                        onClick = {
+                            navigator.replaceAll(ClasificacionScreen())
+                            scope.launch { drawerState.close() } }
                     )
 
 
