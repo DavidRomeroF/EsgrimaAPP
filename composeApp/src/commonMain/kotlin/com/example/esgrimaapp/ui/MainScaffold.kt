@@ -57,7 +57,9 @@ import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.example.esgrimaapp.ui.Register.RegisterScreen
 import com.example.esgrimaapp.ui.arbitros.ArbitrosScreen
+import com.example.esgrimaapp.ui.asaltosGrupos.ResultadosScreen
 import com.example.esgrimaapp.ui.poules.PoulesLayout
 import com.example.esgrimaapp.ui.poules.PoulesScreen
 import com.example.esgrimaapp.ui.tiradores.TiradoresScreen
@@ -132,7 +134,9 @@ fun MainScaffold() {
                     NavMenuLateral(
                         icono = Res.drawable.assignment,
                         titulo = "Resultados",
-                        onClick = {/**/ }
+                        onClick = {
+                            navigator.replaceAll(ResultadosScreen())
+                            scope.launch { drawerState.close() } }
                     )
                     NavMenuLateral(
                         icono = Res.drawable.trophy,

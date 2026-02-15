@@ -1,5 +1,6 @@
 package com.example.esgrimaapp.ui.poules
 
+import com.example.esgrimaapp.data.Asalto
 import com.example.esgrimaapp.data.Poule
 import com.example.esgrimaapp.data.Usuario
 
@@ -19,6 +20,7 @@ data class PoulesUIState(
     // --- Resultado ---
     val gruposGenerados: List<Poule> = emptyList(),
 
+    val todosLosAsaltos: List<Asalto> = emptyList(),
     // --- UI Helpers ---
     val cargando: Boolean = false,
     val errorMensaje: String? = null

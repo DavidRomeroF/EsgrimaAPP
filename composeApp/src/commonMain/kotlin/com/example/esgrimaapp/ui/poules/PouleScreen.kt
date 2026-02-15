@@ -1,5 +1,6 @@
 package com.example.esgrimaapp.ui.poules
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -37,6 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -44,6 +47,8 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import com.example.aprendepalabras.ui.theme.Fondo
+import com.example.esgrimaapp.data.Asalto
+import com.example.esgrimaapp.data.EstadoAsalto
 import com.example.esgrimaapp.data.Poule
 
 class PoulesScreen : Screen {
@@ -207,59 +212,64 @@ fun ListaGruposVista(uiState: PoulesUIState, viewModel: PoulesViewModel) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(uiState.gruposGenerados) { poule ->
-            PouleCard(poule)
+            val asaltosDeEstaPoule = uiState.todosLosAsaltos.filter { it.grupoId == poule.nombre }
+            PouleCard(poule = poule, asaltosDelGrupo = asaltosDeEstaPoule)
         }
     }
 }
 
 @Composable
-fun PouleCard(poule: Poule) {
+fun PouleCard(poule: Poule, asaltosDelGrupo: List<Asalto>) {
+    val finalizados = asaltosDelGrupo.count { it.estado != EstadoAsalto.PROGRAMADO }
+    val total = poule.asaltosTotales.coerceAtLeast(1)
+    val porcentaje = finalizados.toFloat() / total.toFloat()
+    val progresoAnimado by animateFloatAsState(targetValue = porcentaje, label = "barraProgreso")
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFE2E8F0))
+        border = BorderStroke(1.dp, Color(0xFFE2E8F0)) // Borde neutro siempre
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Cabecera
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier.size(40.dp)
-                        .background(Color(0xFFF5F3FF), RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Default.GridView, null, tint = Color(0xFF8B5CF6))
-                }
+                Icon(Icons.Default.GridView, null, tint = Color(0xFF8B5CF6))
                 Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
+                Column {
                     Text(poule.nombre, fontWeight = FontWeight.Bold)
-                    Text(
-                        "Pista ${poule.pista} • Árbitro: ${poule.arbitroAsignado?.nombre ?: "Sin asignar"}",
-                        style = MaterialTheme.typography.bodySmall, color = Color.Gray
-                    )
+                    Text("Pista ${poule.pista}", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                 }
             }
 
             Spacer(Modifier.height(16.dp))
 
-            // Lista de tiradores en el grupo
+            // Lista de Tiradores limpia (Solo nombres)
             poule.tiradores.forEach { tirador ->
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                        .background(Color(0xFFF8FAFC), RoundedCornerShape(4.dp)).padding(8.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp)
+                        .background(Color(0xFFF8FAFC), RoundedCornerShape(4.dp))
+                        .padding(8.dp)
                 ) {
-                    Text(tirador.nombre, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = tirador.nombre, color = Color.Unspecified)
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
+
+            // Barra de Progreso
             LinearProgressIndicator(
-                progress = 0f, // Aquí irá el progreso de asaltos luego
-                modifier = Modifier.fillMaxWidth(),
+                progress = progresoAnimado,
+                modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape),
                 color = Color(0xFF8B5CF6),
                 trackColor = Color(0xFFE2E8F0)
             )
             Text(
-                "Asaltos: 0 / ${poule.asaltosTotales}",
-                style = MaterialTheme.typography.labelSmall
+                "Progreso: $finalizados / $total",
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(top = 4.dp),
+                color = Color.Gray
             )
         }
     }

@@ -1,13 +1,16 @@
 package com.example.esgrimaapp.data
 
-//import kotlinx.datetime.LocalDateTime
-//
-//data class Asalto(
-//    val arbitro: Inscrito,
-//    val tirador1: Inscrito,
-//    val tirador2: Inscrito,
-//    var tocados1: Int = 0,
-//    var tocados2: Int = 0,
-//    var ganador: Inscrito? = null, // para fase eliminatoria
-//    val horaInicio: LocalDateTime? = null
-//)
+enum class EstadoAsalto { PROGRAMADO, EN_CURSO, FINALIZADO, INCOMPARECENCIA_A, INCOMPARECENCIA_B, INCOMPARECENCIA_AMBOS }
+
+data class Asalto(
+    val id: String,
+    val grupoId: String,
+    val tiradorA: Usuario,
+    val tiradorB: Usuario,
+    val tocadosA: Int = 0,
+    val tocadosB: Int = 0,
+    val arbitro: Usuario?,
+    val pista: Int,
+    val estado: EstadoAsalto = EstadoAsalto.PROGRAMADO,
+    val horaEstimada: String
+)
