@@ -1,6 +1,7 @@
 package com.example.esgrimaapp.ui
 
 import com.example.esgrimaapp.data.Competicion
+import com.example.esgrimaapp.data.Poule
 import com.example.esgrimaapp.data.Usuario
 import com.example.esgrimaapp.ui.competicion.CompeticionUIState
 import com.example.esgrimaapp.ui.tiradores.TiradoresUIState
@@ -30,6 +31,9 @@ object FencingRepository {
     // Relación: Competición -> Árbitros Inscritos
     private val _arbitrosInscritos = MutableStateFlow<Map<String, List<Usuario>>>(emptyMap())
     val arbitrosInscritos = _arbitrosInscritos.asStateFlow()
+
+    private val _poulesCompeticion = MutableStateFlow<Map<String, List<Poule>>>(emptyMap())
+    val poulesCompeticion = _poulesCompeticion.asStateFlow()
 
     // Funciones de Usuarios
     fun agregarUsuario(usuario: Usuario) { _usuariosGlobales.update { it + usuario } }
@@ -86,5 +90,13 @@ object FencingRepository {
             val lista = actual[compId] ?: emptyList()
             actual + (compId to lista.filterNot { it.numeroFederacion == numFede })
         }
+    }
+
+    fun guardarPoules(compId: String, lista: List<Poule>) {
+        _poulesCompeticion.update { it + (compId to lista) }
+    }
+
+    fun reiniciarPoules(compId: String) {
+        _poulesCompeticion.update { it - compId }
     }
 }

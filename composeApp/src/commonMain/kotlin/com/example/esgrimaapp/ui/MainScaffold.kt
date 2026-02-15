@@ -58,6 +58,8 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.example.esgrimaapp.ui.arbitros.ArbitrosScreen
+import com.example.esgrimaapp.ui.poules.PoulesLayout
+import com.example.esgrimaapp.ui.poules.PoulesScreen
 import com.example.esgrimaapp.ui.tiradores.TiradoresScreen
 import com.example.esgrimaapp.ui.usuarios.UsuariosScreen
 import esgrimaapp.composeapp.generated.resources.database
@@ -123,7 +125,9 @@ fun MainScaffold() {
                     NavMenuLateral(
                         icono = Res.drawable.grid,
                         titulo = "Grupos(Poules)",
-                        onClick = {/**/ }
+                        onClick = {
+                            navigator.replaceAll(PoulesScreen())
+                            scope.launch { drawerState.close() } }
                     )
                     NavMenuLateral(
                         icono = Res.drawable.assignment,
