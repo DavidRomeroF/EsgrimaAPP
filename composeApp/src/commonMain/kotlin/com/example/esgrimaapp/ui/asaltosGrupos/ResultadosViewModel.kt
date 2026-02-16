@@ -4,6 +4,7 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.example.esgrimaapp.data.Asalto
 import com.example.esgrimaapp.data.EstadoAsalto
+import com.example.esgrimaapp.data.Usuario
 import com.example.esgrimaapp.ui.FencingRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -48,5 +49,15 @@ class ResultadosViewModel : ScreenModel {
 
         FencingRepository.actualizarResultadoAsalto(idComp, asalto.id, puntosA, puntosB, estado)
         _uiState.update { it.copy(asaltoParaEditar = null) }
+    }
+
+    fun esArbitroValido(arbitro: Usuario, asalto: Asalto): Boolean {
+        // Si el asalto está vacío, no hay conflicto
+        if (asalto.tiradorA.nombre == "---" && asalto.tiradorB.nombre == "---") return true
+
+        // Comprobamos si el club del árbitro coincide con alguno de los tiradores
+        val clubArbitro = arbitro.club ?: return true // Si el árbitro no tiene club, no hay conflicto
+
+        return clubArbitro != asalto.tiradorA.club && clubArbitro != asalto.tiradorB.club
     }
 }

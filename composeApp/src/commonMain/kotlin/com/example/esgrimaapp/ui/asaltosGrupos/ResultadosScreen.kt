@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DeveloperBoard
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
@@ -30,6 +31,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,8 +49,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
@@ -100,11 +104,6 @@ fun ResultadosLayout(uiState: ResultadosUIState, viewModel: ResultadosViewModel)
                 texto = "Fase de Grupos",
                 activo = uiState.faseGruposActiva,
                 onClick = { viewModel.setFase(true) }
-            )
-            BotonTab(
-                texto = "Fase Eliminatoria",
-                activo = !uiState.faseGruposActiva,
-                onClick = { viewModel.setFase(false) }
             )
         }
 
@@ -216,16 +215,16 @@ fun TarjetaAsaltoIndividual(asalto: Asalto, onEdit: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Tirador A
                 Text(
                     text = asalto.tiradorA.nombre,
                     color = colorNombreA,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.End,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
-                // Marcador
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -234,7 +233,6 @@ fun TarjetaAsaltoIndividual(asalto: Asalto, onEdit: () -> Unit) {
                         text = "${asalto.tocadosA}",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        // El ganador se pone en azul (si no es ausencia)
                         color = if(asalto.estado == EstadoAsalto.FINALIZADO && asalto.tocadosA > asalto.tocadosB) Color(0xFF2563EB) else Color.Unspecified
                     )
                     Text("-", modifier = Modifier.padding(horizontal = 8.dp), color = Color.LightGray)
@@ -246,17 +244,45 @@ fun TarjetaAsaltoIndividual(asalto: Asalto, onEdit: () -> Unit) {
                     )
                 }
 
-                // Tirador B
                 Text(
                     text = asalto.tiradorB.nombre,
                     color = colorNombreB,
                     modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 IconButton(onClick = onEdit) {
                     Icon(Icons.Default.Edit, contentDescription = null, tint = Color(0xFF2563EB), modifier = Modifier.size(20.dp))
                 }
+            }
+
+            // --- NUEVO SECCIÓN: ÁRBITRO ---
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 12.dp),
+                color = Color(0xFFF1F5F9),
+                thickness = 1.dp
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PersonSearch, // O Icons.Default.Gavel si prefieres
+                    contentDescription = "Árbitro",
+                    tint = Color(0xFF94A3B8),
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = "Árbitro: ${asalto.arbitro?.nombre ?: "Sin asignar"}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (asalto.arbitro != null) Color(0xFF64748B) else Color(0xFF94A3B8),
+                    fontStyle = if (asalto.arbitro == null) FontStyle.Italic else FontStyle.Normal
+                )
             }
         }
     }

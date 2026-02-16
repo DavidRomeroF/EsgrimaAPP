@@ -305,7 +305,7 @@ fun TarjetaCruceProfesional(asalto: Asalto, clicable: Boolean, onClick: () -> Un
         enabled = clicable,
         modifier = Modifier
             .fillMaxWidth()
-            .height(90.dp) // Aumentamos un poco la altura para comodidad
+            .height(110.dp) // Subimos un poco para que quepa el árbitro abajo
             .padding(horizontal = 8.dp),
         shape = RoundedCornerShape(8.dp),
         color = Color.White,
@@ -316,7 +316,7 @@ fun TarjetaCruceProfesional(asalto: Asalto, clicable: Boolean, onClick: () -> Un
             val esPaseDirecto = asalto.estado == EstadoAsalto.FINALIZADO &&
                     (asalto.tiradorA.nombre == "---" || asalto.tiradorB.nombre == "---")
 
-            // Usamos Box con weight para asegurar que el espacio sea 50/50 exacto
+            // 1. FILA TIRADOR A
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 FilaTiradorProfesional(
                     nombre = asalto.tiradorA.nombre,
@@ -328,6 +328,7 @@ fun TarjetaCruceProfesional(asalto: Asalto, clicable: Boolean, onClick: () -> Un
 
             HorizontalDivider(color = Color(0xFFF1F5F9), thickness = 1.dp)
 
+            // 2. FILA TIRADOR B
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 FilaTiradorProfesional(
                     nombre = asalto.tiradorB.nombre,
@@ -335,6 +336,48 @@ fun TarjetaCruceProfesional(asalto: Asalto, clicable: Boolean, onClick: () -> Un
                     esGanador = asalto.estado == EstadoAsalto.FINALIZADO && asalto.tocadosB > asalto.tocadosA,
                     esPaseDirecto = esPaseDirecto
                 )
+            }
+
+            // 3. SECCIÓN ÁRBITRO + LÓGICA DE CLUB
+            if (asalto.tiradorA.nombre != "---") { // Solo mostrar si hay asalto real
+                val arbitro = asalto.arbitro
+                val conflictoClub = arbitro != null &&
+                        (arbitro.club == asalto.tiradorA.club || arbitro.club == asalto.tiradorB.club)
+
+                Surface(
+                    color = if (conflictoClub) Color(0xFFFEF2F2) else Color(0xFFF8FAFC),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(vertical = 4.dp, horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Gavel,
+                            contentDescription = null,
+                            modifier = Modifier.size(12.dp),
+                            tint = if (conflictoClub) Color.Red else Color(0xFF94A3B8)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = arbitro?.nombre ?: "Sin Árbitro",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (conflictoClub) FontWeight.Bold else FontWeight.Normal,
+                            color = if (conflictoClub) Color.Red else Color(0xFF64748B),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (conflictoClub) {
+                            Spacer(Modifier.weight(1f))
+                            Text(
+                                text = "MISMO CLUB",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Red,
+                                fontWeight = FontWeight.Black
+                            )
+                        }
+                    }
+                }
             }
         }
     }

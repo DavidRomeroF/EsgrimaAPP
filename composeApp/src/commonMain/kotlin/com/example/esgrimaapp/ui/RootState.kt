@@ -145,15 +145,15 @@ object FencingRepository {
         val asaltoFinalizado = listaActualizada.find { it.id == asaltoId } ?: return
         val ganador = if (puntosA > puntosB) asaltoFinalizado.tiradorA else asaltoFinalizado.tiradorB
 
-        // 2. Lógica de cálculo del siguiente ID (Avance de ronda)
+        // 2. Lógica de avance de ronda y RECALCULO DE ÁRBITRO
         val partes = asaltoId.split("_")
         if (partes.size == 3) {
-            val nivelActual = partes[1].toInt() // Ejemplo: 8
-            val indiceActual = partes[2].toInt() // Ejemplo: 0, 1, 2 o 3
+            val nivelActual = partes[1].toInt()
+            val indiceActual = partes[2].toInt()
 
-            if (nivelActual > 2) { // Si no es la final, avanzamos
-                val siguienteNivel = nivelActual / 2 // De 8 pasa a 4
-                val siguienteIndice = indiceActual / 2 // 0 y 1 van al 0; 2 y 3 van al 1
+            if (nivelActual > 2) {
+                val siguienteNivel = nivelActual / 2
+                val siguienteIndice = indiceActual / 2
 
                 val siguienteId = "DE_${siguienteNivel}_${siguienteIndice}"
                 val indexSiguiente = listaActualizada.indexOfFirst { it.id == siguienteId }
@@ -161,13 +161,35 @@ object FencingRepository {
                 if (indexSiguiente != -1) {
                     val asaltoSig = listaActualizada[indexSiguiente]
 
-                    // Si el índice original era par (0, 2, 4...), el ganador va arriba (tiradorA)
-                    // Si era impar (1, 3, 5...), el ganador va abajo (tiradorB)
-                    listaActualizada[indexSiguiente] = if (indiceActual % 2 == 0) {
+                    // Promocionamos al ganador
+                    val asaltoConGanador = if (indiceActual % 2 == 0) {
                         asaltoSig.copy(tiradorA = ganador)
                     } else {
                         asaltoSig.copy(tiradorB = ganador)
                     }
+
+                    // --- NUEVO: ASIGNACIÓN AUTOMÁTICA DE ÁRBITRO ---
+                    // Si ahora tenemos a los dos tiradores listos, buscamos árbitro
+                    val asaltoFinalConArbitro = if (asaltoConGanador.tiradorA.nombre != "---" &&
+                        asaltoConGanador.tiradorB.nombre != "---") {
+
+                        val arbitrosPool = _arbitrosInscritos.value[compId] ?: emptyList()
+                        val poolMezclado = arbitrosPool.shuffled()
+
+                        // Intento A: Sin conflicto de club
+                        val ideal = poolMezclado.firstOrNull { arb ->
+                            arb.club.isEmpty() || (arb.club != asaltoConGanador.tiradorA.club && arb.club != asaltoConGanador.tiradorB.club)
+                        }
+
+                        // Intento B: Por "cojones", si no hay ideal, el primero que haya
+                        val arbitroElegido = ideal ?: poolMezclado.firstOrNull()
+
+                        asaltoConGanador.copy(arbitro = arbitroElegido)
+                    } else {
+                        asaltoConGanador
+                    }
+
+                    listaActualizada[indexSiguiente] = asaltoFinalConArbitro
                 }
             }
         }

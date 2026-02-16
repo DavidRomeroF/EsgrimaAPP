@@ -141,13 +141,6 @@ fun MainScaffold() {
                             scope.launch { drawerState.close() } }
                     )
                     NavMenuLateral(
-                        icono = Res.drawable.trophy,
-                        titulo = "Clasificacíon",
-                        onClick = {
-                            navigator.replaceAll(RankingScreen())
-                            scope.launch { drawerState.close() } }
-                    )
-                    NavMenuLateral(
                         icono = Res.drawable.flowchart,
                         titulo = "Tablón (Eliminatorias)",
                         onClick = {
