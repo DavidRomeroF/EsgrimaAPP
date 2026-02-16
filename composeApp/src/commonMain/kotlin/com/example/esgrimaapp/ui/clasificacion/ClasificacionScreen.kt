@@ -188,7 +188,7 @@ fun VisualizadorBracketProfesional(state: ClasifiacionUIState, viewModel: Clasif
                 .padding(60.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxHeight(), // Importante para que el centrado vertical funcione
+                modifier = Modifier.fillMaxHeight(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val agrupados = state.asaltosExistentes.groupBy { it.id.split("_")[1].toInt() }
@@ -196,16 +196,12 @@ fun VisualizadorBracketProfesional(state: ClasifiacionUIState, viewModel: Clasif
 
                 nivelesOrdenados.forEachIndexed { index, nivel ->
                     val asaltosDeRonda = agrupados[nivel] ?: emptyList()
-
-                    // Altura total que ocupa un bloque de asalto (incluyendo espacio)
-                    // En T8 el bloque mide 120dp, en T4 mide 240dp, etc.
                     val factorEspaciado = 2.0.pow(index.toDouble()).toFloat()
                     val alturaBloque = 120.dp * factorEspaciado
 
                     Column(
-                        modifier = Modifier.width(260.dp), // Un poco más ancho para que respire
+                        modifier = Modifier.width(260.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        // CAMBIO CLAVE: Usamos Top para controlar nosotros el espaciado
                         verticalArrangement = Arrangement.Top
                     ) {
                         Text(
@@ -218,19 +214,15 @@ fun VisualizadorBracketProfesional(state: ClasifiacionUIState, viewModel: Clasif
 
                         Spacer(Modifier.height(32.dp))
 
-                        // Contenedor que centra los asaltos verticalmente respecto a la pantalla
                         Column(
                             modifier = Modifier.fillMaxHeight(),
                             verticalArrangement = Arrangement.Center
                         ) {
-                            // IMPORTANTE: Ordenamos los asaltos por su ID para que el 0 vaya arriba, el 1 debajo, etc.
-                            // Esto evita que "Pablo contra Luis" y "Lucía contra Elena" quieran ir a la misma tarjeta.
                             val asaltosOrdenados = asaltosDeRonda.sortedBy { it.id.split("_").last().toInt() }
 
                             asaltosOrdenados.forEach { asalto ->
                                 val clicable = asalto.tiradorA.nombre != "---" && asalto.tiradorB.nombre != "---"
 
-                                // Cada asalto se dibuja en su propio Box con altura fija
                                 Box(
                                     modifier = Modifier
                                         .height(alturaBloque)
@@ -245,7 +237,7 @@ fun VisualizadorBracketProfesional(state: ClasifiacionUIState, viewModel: Clasif
                         }
                     }
 
-                    // Separador visual entre columnas
+                    // Separador visual entre columnas (Flechas)
                     if (index < nivelesOrdenados.size - 1) {
                         Spacer(Modifier.width(20.dp))
                         Icon(
@@ -255,6 +247,50 @@ fun VisualizadorBracketProfesional(state: ClasifiacionUIState, viewModel: Clasif
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.width(20.dp))
+                    }
+                }
+
+                // --- NUEVO: TARJETA DE CAMPEÓN FINAL ---
+                val finalAsalto = agrupados[2]?.firstOrNull()
+                if (finalAsalto != null && finalAsalto.estado == EstadoAsalto.FINALIZADO) {
+                    val campeon = if (finalAsalto.tocadosA > finalAsalto.tocadosB) finalAsalto.tiradorA else finalAsalto.tiradorB
+
+                    Spacer(Modifier.width(60.dp))
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.EmojiEvents,
+                            contentDescription = "Trofeo",
+                            tint = Color(0xFFFFD700),
+                            modifier = Modifier.size(64.dp)
+                        )
+                        Text(
+                            text = "CAMPEÓN",
+                            fontWeight = FontWeight.Black,
+                            color = Color(0xFF1E293B),
+                            letterSpacing = 1.sp
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        Surface(
+                            color = Color(0xFF1E293B),
+                            shape = RoundedCornerShape(12.dp),
+                            shadowElevation = 8.dp,
+                            modifier = Modifier.width(220.dp)
+                        ) {
+                            Text(
+                                text = campeon.nombre,
+                                color = Color.White,
+                                modifier = Modifier.padding(vertical = 20.dp, horizontal = 16.dp),
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
             }
@@ -269,7 +305,7 @@ fun TarjetaCruceProfesional(asalto: Asalto, clicable: Boolean, onClick: () -> Un
         enabled = clicable,
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
+            .height(90.dp) // Aumentamos un poco la altura para comodidad
             .padding(horizontal = 8.dp),
         shape = RoundedCornerShape(8.dp),
         color = Color.White,
@@ -277,23 +313,35 @@ fun TarjetaCruceProfesional(asalto: Asalto, clicable: Boolean, onClick: () -> Un
         border = BorderStroke(1.dp, if(clicable) Color(0xFFE2E8F0) else Color(0xFFF1F5F9))
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            FilaTiradorProfesional(
-                nombre = asalto.tiradorA.nombre,
-                puntos = asalto.tocadosA,
-                esGanador = asalto.estado == EstadoAsalto.FINALIZADO && asalto.tocadosA > asalto.tocadosB
-            )
+            val esPaseDirecto = asalto.estado == EstadoAsalto.FINALIZADO &&
+                    (asalto.tiradorA.nombre == "---" || asalto.tiradorB.nombre == "---")
+
+            // Usamos Box con weight para asegurar que el espacio sea 50/50 exacto
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                FilaTiradorProfesional(
+                    nombre = asalto.tiradorA.nombre,
+                    puntos = asalto.tocadosA,
+                    esGanador = asalto.estado == EstadoAsalto.FINALIZADO && asalto.tocadosA > asalto.tocadosB,
+                    esPaseDirecto = esPaseDirecto
+                )
+            }
+
             HorizontalDivider(color = Color(0xFFF1F5F9), thickness = 1.dp)
-            FilaTiradorProfesional(
-                nombre = asalto.tiradorB.nombre,
-                puntos = asalto.tocadosB,
-                esGanador = asalto.estado == EstadoAsalto.FINALIZADO && asalto.tocadosB > asalto.tocadosA
-            )
+
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                FilaTiradorProfesional(
+                    nombre = asalto.tiradorB.nombre,
+                    puntos = asalto.tocadosB,
+                    esGanador = asalto.estado == EstadoAsalto.FINALIZADO && asalto.tocadosB > asalto.tocadosA,
+                    esPaseDirecto = esPaseDirecto
+                )
+            }
         }
     }
 }
 
 @Composable
-fun FilaTiradorProfesional(nombre: String, puntos: Int, esGanador: Boolean) {
+fun FilaTiradorProfesional(nombre: String, puntos: Int, esGanador: Boolean,esPaseDirecto: Boolean = false) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -302,7 +350,7 @@ fun FilaTiradorProfesional(nombre: String, puntos: Int, esGanador: Boolean) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = nombre,
+            text = if (nombre == "---") "EXENTO" else nombre,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = if (esGanador) FontWeight.Bold else FontWeight.Normal,
             color = if (nombre == "---") Color.LightGray else if (esGanador) Color(0xFF1E293B) else Color(0xFF64748B),
@@ -316,7 +364,8 @@ fun FilaTiradorProfesional(nombre: String, puntos: Int, esGanador: Boolean) {
                 shape = RoundedCornerShape(4.dp)
             ) {
                 Text(
-                    text = puntos.toString(),
+                    // Lógica solicitada: Si es pase directo ponemos "BYE", si no, los puntos
+                    text = if (esPaseDirecto) "BYE" else puntos.toString(),
                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Black,
