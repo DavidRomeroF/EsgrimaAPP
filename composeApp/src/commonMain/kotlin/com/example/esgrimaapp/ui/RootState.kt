@@ -46,6 +46,7 @@ object FencingRepository {
     private val _asaltosEliminacion = MutableStateFlow<Map<String, List<Asalto>>>(emptyMap())
     val asaltosEliminacion = _asaltosEliminacion.asStateFlow()
 
+
     // Funciones de Usuarios
     fun agregarUsuario(usuario: Usuario) { _usuariosGlobales.update { it + usuario } }
 
@@ -196,52 +197,6 @@ object FencingRepository {
 
         // 3. Actualizar el estado global
         _asaltosEliminacion.update { it + (compId to listaActualizada) }
-    }
-
-    fun cargarDatosPrueba() {
-        val idComp = "comp_demo_2026"
-
-        // 1. Crear Competición con los nuevos campos [entidad, fecha, lugar, arma]
-        val compDemo = Competicion(
-            id = idComp,
-            nombre = "I Torneo Clasificatorio 2026",
-            entidad = "Federación Madrileña de Esgrima",
-            fecha = "15/02/2026",
-            lugar = "Polideportivo Municipal, Madrid",
-            arma = "Espada Masculina"
-        )
-
-        _idCompeticionActiva.value = idComp
-        _competiciones.update { it + compDemo }
-
-        // 2. Definir Árbitros (con el campo esArbitro y especialidades)
-        val arbitrosDemo = listOf(
-            Usuario(
-                nombre = "Carlos Juez",
-                club = "C.E. Madrid",
-                esArbitro = true,
-                especialidades = listOf("Espada", "Florete")
-            ),
-            Usuario(
-                nombre = "Ana Referí",
-                club = "S.A. Granollers",
-                esArbitro = true,
-                especialidades = listOf("Espada")
-            )
-        )
-        _arbitrosInscritos.update { it + (idComp to arbitrosDemo) }
-
-        // 3. Definir Tiradores (6 para hacer 2 grupos de 3)
-        val tiradoresDemo = listOf(
-            Usuario("Pablo", "C.E. Madrid"),
-            Usuario("Marta", "S.A. Granollers"),
-            Usuario("Luis", "VCE Valladolid"),
-            Usuario("Elena", "C.E. Madrid"),
-            Usuario("Marcos", "S.A. Granollers"),
-            Usuario("Lucía", "VCE Valladolid")
-        )
-        _inscripciones.update { it + (idComp to tiradoresDemo) }
-
     }
 }
 

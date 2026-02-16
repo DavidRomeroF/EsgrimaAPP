@@ -29,6 +29,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,6 +38,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.model.rememberScreenModel
+import cafe.adriel.voyager.core.screen.Screen
 import com.example.aprendepalabras.ui.theme.BordeCartaCompDes
 import com.example.aprendepalabras.ui.theme.CartaArbitros
 import com.example.aprendepalabras.ui.theme.CartaAsaltosDeGrupos
@@ -49,56 +53,57 @@ import esgrimaapp.composeapp.generated.resources.Res
 import esgrimaapp.composeapp.generated.resources.swords
 import org.jetbrains.compose.resources.painterResource
 
-@Preview(showSystemUi = true)
-@Composable
-fun DashboardScreen() {
+class DashboardScreen : Screen {
+    @Composable
+    override fun Content() {
+        val viewModel = rememberScreenModel { DashboardViewModel() }
+        val state by viewModel.uiState.collectAsState()
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        // 1. Títulos
-        item {
-            Column(
-                modifier = Modifier.padding(18.dp)
-            ) {
-                Text("Bienvenido, Administrador", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text("Panel de control del sistema de gestión de competiciones de esgrima", color = Color.Gray)
-            }
-        }
-
-        // 2. Banner
-        item {
-            MostrarCompeticionActiva()
-        }
-
-        // 3. EL GRID DENTRO DE UNA BOX
-        item {
-            Box(
-                modifier = Modifier
-                    .heightIn(min = 100.dp, max = 1000.dp)
-                    .fillMaxWidth()
-            ) {
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 250.dp),
-                    horizontalArrangement = Arrangement.spacedBy(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                    userScrollEnabled = false
-                ) {
-                    item { StatCard("Tiradores", "0", Icons.Default.Person, CartaTiradores) }
-                    item { StatCard("Árbitros", "0", Icons.Default.CheckCircle, CartaArbitros) }
-                    item { StatCard("Grupos (Poules)", "0", Icons.Default.GridOn, CartaGrupos) }
-                    item { StatCard("Asaltos de Grupo", "0/0", Icons.Default.EmojiEvents, CartaAsaltosDeGrupos) }
-                    item { StatCard("Eliminatorias", "0/0", Icons.Default.Timeline, CartaEliminatorias) }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // 1. Títulos
+            item {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Text("Bienvenido, Administrador", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text("Panel de control del sistema de gestión de competiciones de esgrima", color = Color.Gray)
                 }
             }
-        }
 
-        //Guia rapida
-        item {
-            GuiaRapida()
+            // 2. Banner (Ahora recibe el estado)
+            item {
+                MostrarCompeticionActiva(state)
+            }
+
+            // 3. EL GRID DENTRO DE UNA BOX (Diseño original exacto)
+            item {
+                Box(
+                    modifier = Modifier
+                        .heightIn(min = 100.dp, max = 1000.dp)
+                        .fillMaxWidth()
+                ) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(minSize = 250.dp),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp),
+                        userScrollEnabled = false
+                    ) {
+                        item { StatCard("Tiradores", "${state.numTiradores}", Icons.Default.Person, CartaTiradores) }
+                        item { StatCard("Árbitros", "${state.numArbitros}", Icons.Default.CheckCircle, CartaArbitros) }
+                        item { StatCard("Grupos (Poules)", "${state.numPoules}", Icons.Default.GridOn, CartaGrupos) }
+                        item { StatCard("Asaltos de Grupo", state.progresoAsaltosGrupo, Icons.Default.EmojiEvents, CartaAsaltosDeGrupos) }
+                        item { StatCard("Eliminatorias", state.progresoEliminatorias, Icons.Default.Timeline, CartaEliminatorias) }
+                    }
+                }
+            }
+
+            // 4. Guía rápida (Sin cambios)
+            item {
+                GuiaRapida()
+            }
         }
     }
 }
@@ -136,16 +141,12 @@ fun StatCard(titulo: String, valor: String, icono: ImageVector, colorIcono: Colo
 }
 
 @Composable
-fun MostrarCompeticionActiva(){
-    if(false){
-
+fun MostrarCompeticionActiva(state: DashboardUIState) {
+    if(state.hayCompeticion) {
         Card(
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            ),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
             shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth()
-                .padding(top = 20.dp, bottom = 30.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 30.dp),
             border = BorderStroke(1.dp, Color.LightGray),
         ) {
             Row(
@@ -160,42 +161,36 @@ fun MostrarCompeticionActiva(){
                     Icon(
                         painter = painterResource(Res.drawable.swords),
                         contentDescription = "Competición",
-                        tint = Principal, // El icono queda blanco sobre el fondo azul
-                        modifier = Modifier.padding(10.dp) // Espacio interno para que el icono no toque los bordes
+                        tint = Principal,
+                        modifier = Modifier.padding(10.dp)
                     )
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Column {
-                    Text("NombreCompetición", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-                    Text("Entidad: Federacion Valenciana", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                    Text("Fecha: 2026-02-06", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                    Text("Arma: Espada", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                    Text("Lugar: Madrid", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    // DATOS REALES AQUÍ
+                    Text(state.nombreComp, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                    Text("Entidad: ${state.entidad}", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    Text("Fecha: ${state.fecha}", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    Text("Arma: ${state.arma}", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    Text("Lugar: ${state.lugar}", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 }
             }
         }
-
-    }else{
+    } else {
+        // Banner de "No hay competición" (mismo código que ya tenías)
         Card(
-            colors = CardDefaults.cardColors(
-                containerColor = CartaCompetricionesDes
-            ),
+            colors = CardDefaults.cardColors(containerColor = CartaCompetricionesDes),
             shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth()
-                .padding(top = 20.dp, bottom = 30.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 30.dp),
             border = BorderStroke(1.dp, BordeCartaCompDes),
         ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("No hay ninguna competición activa. Crea una nueva competición para comenzar")
             }
         }
     }
-
 }
 
 @Composable

@@ -10,7 +10,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,14 +23,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -61,6 +67,7 @@ import com.example.esgrimaapp.ui.Register.RegisterScreen
 import com.example.esgrimaapp.ui.arbitros.ArbitrosScreen
 import com.example.esgrimaapp.ui.asaltosGrupos.ResultadosScreen
 import com.example.esgrimaapp.ui.clasificacion.ClasificacionScreen
+import com.example.esgrimaapp.ui.login.LoginScreen
 import com.example.esgrimaapp.ui.poules.PoulesLayout
 import com.example.esgrimaapp.ui.poules.PoulesScreen
 import com.example.esgrimaapp.ui.ranking.RankingScreen
@@ -69,117 +76,151 @@ import com.example.esgrimaapp.ui.usuarios.UsuariosScreen
 import esgrimaapp.composeapp.generated.resources.database
 
 
-@Preview
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MainScaffold() {
-    // Navigator interno: empieza en Dashboard
-    Navigator(DashboardScreenContent()) { navigator ->
-        val drawerState = rememberDrawerState(DrawerValue.Closed)
-        val scope = rememberCoroutineScope()
+class MainScaffoldScreen : Screen {
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    override fun Content() {
+        // 1. Navegador de nivel raíz (el que está en App.kt)
+        // Se usa para cerrar sesión y volver al Login
+        val rootNavigator = LocalNavigator.currentOrThrow
 
-        ModalNavigationDrawer(
-            drawerState = drawerState,
-            drawerContent = {
-                ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
-                    // Cabecera del Drawer
-                    DrawerHeader()
+        // 2. Navegador interno para las secciones (Dashboard, Usuarios, etc.)
+        Navigator(DashboardScreen()) { sectionNavigator ->
+            val drawerState = rememberDrawerState(DrawerValue.Closed)
+            val scope = rememberCoroutineScope()
 
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            ModalNavigationDrawer(
+                drawerState = drawerState,
+                drawerContent = {
+                    ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
+                        // Cabecera fija
+                        DrawerHeader()
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
 
-                    // Ítems del Menú
-                    NavMenuLateral(
-                        icono = Res.drawable.grid,
-                        titulo = "Pantalla principal",
-                        onClick = {
-                            navigator.replaceAll(DashboardScreenContent())
-                            scope.launch { drawerState.close() }
+                        // CUERPO CON SCROLL VERTICAL
+                        Column(
+                            modifier = Modifier
+                                .weight(1f) // Empuja el botón de cerrar sesión al final
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            NavMenuLateral(
+                                icono = Res.drawable.grid,
+                                titulo = "Pantalla principal",
+                                onClick = {
+                                    sectionNavigator.replaceAll(DashboardScreen())
+                                    scope.launch { drawerState.close() }
+                                }
+                            )
+                            NavMenuLateral(
+                                icono = Res.drawable.database,
+                                titulo = "Usuarios",
+                                onClick = {
+                                    sectionNavigator.replaceAll(UsuariosScreen())
+                                    scope.launch { drawerState.close() }
+                                }
+                            )
+                            NavMenuLateral(
+                                icono = Res.drawable.swords,
+                                titulo = "Competición",
+                                onClick = {
+                                    sectionNavigator.replaceAll(CompeticionScreen())
+                                    scope.launch { drawerState.close() }
+                                }
+                            )
+                            NavMenuLateral(
+                                icono = Res.drawable.groups,
+                                titulo = "Tiradores",
+                                onClick = {
+                                    sectionNavigator.replaceAll(TiradoresScreen())
+                                    scope.launch { drawerState.close() }
+                                }
+                            )
+                            NavMenuLateral(
+                                icono = Res.drawable.personAdd,
+                                titulo = "Árbitros",
+                                onClick = {
+                                    sectionNavigator.replaceAll(ArbitrosScreen())
+                                    scope.launch { drawerState.close() }
+                                }
+                            )
+                            NavMenuLateral(
+                                icono = Res.drawable.grid, // Cambia si tienes otro icono para Poules
+                                titulo = "Grupos (Poules)",
+                                onClick = {
+                                    sectionNavigator.replaceAll(PoulesScreen())
+                                    scope.launch { drawerState.close() }
+                                }
+                            )
+                            NavMenuLateral(
+                                icono = Res.drawable.assignment,
+                                titulo = "Resultados",
+                                onClick = {
+                                    sectionNavigator.replaceAll(ResultadosScreen())
+                                    scope.launch { drawerState.close() }
+                                }
+                            )
+                            NavMenuLateral(
+                                icono = Res.drawable.flowchart,
+                                titulo = "Tablón (Eliminatorias)",
+                                onClick = {
+                                    sectionNavigator.replaceAll(ClasificacionScreen())
+                                    scope.launch { drawerState.close() }
+                                }
+                            )
                         }
-                    )
-                    NavMenuLateral(
-                        icono = Res.drawable.database,
-                        titulo = "Usuarios",
-                        onClick = {
-                            navigator.replaceAll(UsuariosScreen())
-                            scope.launch { drawerState.close() }
-                        }
-                    )
-                    NavMenuLateral(
-                        icono = Res.drawable.swords,
-                        titulo = "Competición",
-                        onClick = {
-                            navigator.replaceAll(CompeticionScreen())
-                            scope.launch { drawerState.close() }
-                        }
-                    )
-                    NavMenuLateral(
-                        icono = Res.drawable.groups,
-                        titulo = "Tiradores",
-                        onClick = {
-                            navigator.replaceAll(TiradoresScreen())
-                            scope.launch { drawerState.close() } }
-                    )
-                    NavMenuLateral(
-                        icono = Res.drawable.personAdd,
-                        titulo = "Árbitros",
-                        onClick = {
-                            navigator.replaceAll(ArbitrosScreen())
-                            scope.launch { drawerState.close() } }
-                    )
-                    NavMenuLateral(
-                        icono = Res.drawable.grid,
-                        titulo = "Grupos(Poules)",
-                        onClick = {
-                            navigator.replaceAll(PoulesScreen())
-                            scope.launch { drawerState.close() } }
-                    )
-                    NavMenuLateral(
-                        icono = Res.drawable.assignment,
-                        titulo = "Resultados",
-                        onClick = {
-                            navigator.replaceAll(ResultadosScreen())
-                            scope.launch { drawerState.close() } }
-                    )
-                    NavMenuLateral(
-                        icono = Res.drawable.flowchart,
-                        titulo = "Tablón (Eliminatorias)",
-                        onClick = {
-                            navigator.replaceAll(ClasificacionScreen())
-                            scope.launch { drawerState.close() } }
-                    )
 
+                        // SECCIÓN DE CIERRE DE SESIÓN (Fija al fondo)
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
+                        NavigationDrawerItem(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.Logout,
+                                    contentDescription = null,
+                                    tint = Color.Red
+                                )
+                            },
+                            label = { Text("Cerrar Sesión", color = Color.Red, fontWeight = FontWeight.Bold) },
+                            selected = false,
+                            onClick = {
+                                scope.launch {
+                                    drawerState.close()
+                                    // IMPORTANTE: Al usar rootNavigator, volvemos a la raíz
+                                    // Esto DESTRUYE el Scaffold y quita el TopAppBar
+                                    rootNavigator.replaceAll(LoginScreen())
+                                }
+                            },
+                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                        )
+                    }
                 }
-            }
-        ) {
-            Scaffold(
-                containerColor = Fondo,
-                topBar = {
-                    TopAppBar(
-                        title = { Text("Mi App") },
-                        navigationIcon = {
-                            IconButton(
-                                onClick = { scope.launch { drawerState.open() } }
-                            ) {
-                                Icon(Icons.Default.Menu, contentDescription = "Menú")
-                            }
-                        }
-                    )
-                }
-            ) { padding -> // Este es el padding que viene del Scaffold
-                Box(
-                    modifier = Modifier
-                        .padding(padding)
-                        .fillMaxSize()
-                ) {
-                    // SUSTITUIMOS EL NAVHOST POR ESTO:
-                    CurrentScreen()
-
-                    /* Explicación:
-                       CurrentScreen() es un "placeholder" dinámico.
-                       Cuando en el Drawer haces 'navigator.push(CompeticionScreenContent())',
-                       Voyager quita lo que haya en este Box y dibuja la nueva pantalla automáticamente.
-                    */
+            ) {
+                // EL SCAFFOLD ESTÁ AQUÍ DENTRO
+                // Solo existe mientras estemos logueados
+                Scaffold(
+                    containerColor = Fondo,
+                    topBar = {
+                        TopAppBar(
+                            title = { Text("Esgrima Manager") },
+                            navigationIcon = {
+                                IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                    Icon(Icons.Default.Menu, contentDescription = "Abrir Menú")
+                                }
+                            },
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = Color.White
+                            )
+                        )
+                    }
+                ) { padding ->
+                    Box(
+                        modifier = Modifier
+                            .padding(padding)
+                            .fillMaxSize()
+                    ) {
+                        // CurrentScreen muestra el contenido del sectionNavigator
+                        CurrentScreen()
+                    }
                 }
             }
         }

@@ -49,102 +49,120 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import esgrimaapp.composeapp.generated.resources.Res
 import org.jetbrains.compose.resources.painterResource
 import esgrimaapp.composeapp.generated.resources.logo_app
 import com.example.aprendepalabras.ui.theme.Principal
+import com.example.esgrimaapp.ui.MainScaffoldScreen
 
-@Composable
-fun LoginScreen(onLoginSuccess: () -> Unit) {
-    val scrollState = rememberScrollState()
+class LoginScreen : Screen {
+    @Composable
+    override fun Content() {
+        val navigator = LocalNavigator.currentOrThrow
+        val scrollState = rememberScrollState()
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Principal
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .imePadding()
-                .verticalScroll(scrollState)
-                .padding(32.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally
+        // Lógica sencilla: Variables de estado para capturar lo que escribe el usuario
+        var usuario by remember { mutableStateOf("") }
+        var password by remember { mutableStateOf("") }
+        var error by remember { mutableStateOf(false) }
+
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = Principal
         ) {
-            Image(
-                painter = painterResource(Res.drawable.logo_app),
-                contentDescription = "App logo",
-                modifier = Modifier.size(80.dp)
-            )
-            Text(
-                text = "EsgrimaApp",
-                fontWeight = FontWeight.Bold,
-                fontSize = 32.sp,
-                color = Color.Black
-            )
-            Text(
-                text = "Sistema de Gestión de Competiciones",
-                fontSize = 18.sp,
-                color = Color.Black
-            )
-            LoginCard(onLoginAction = onLoginSuccess)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .imePadding()
+                    .verticalScroll(scrollState)
+                    .padding(32.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(Res.drawable.logo_app),
+                    contentDescription = "App logo",
+                    modifier = Modifier.size(80.dp)
+                )
+                Text(
+                    text = "EsgrimaApp",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 32.sp,
+                    color = Color.Black
+                )
 
-            Text(
-                text = "© 2026 EsgrimaAPP. Gestión de competiciones moderna y eficiente",
-                fontSize = 12.sp,
-                color = Color.Black
-            )
+                // Card de Login con la lógica de validación
+                LoginCard(
+                    usuarioValue = usuario,
+                    onUsuarioChange = { usuario = it },
+                    passwordValue = password,
+                    onPasswordChange = { password = it },
+                    onLoginAction = {
+                        // LOGICA SENCILLA: Si es admin y 1234, entra
+                        if (usuario == "admin" && password == "1234") {
+                            error = false
+                            navigator.replaceAll(MainScaffoldScreen()) // Navega al Dashboard
+                        } else {
+                            error = true
+                        }
+                    }
+                )
+
+                if (error) {
+                    Text("Usuario o contraseña incorrectos", color = Color.Red, fontWeight = FontWeight.Bold)
+                }
+
+                Text(
+                    text = "© 2026 EsgrimaAPP. Gestión de competiciones moderna y eficiente",
+                    fontSize = 12.sp,
+                    color = Color.Black
+                )
+            }
         }
     }
 }
 
 @Composable
 fun LoginCard(
+    usuarioValue: String,
+    onUsuarioChange: (String) -> Unit,
+    passwordValue: String,
+    onPasswordChange: (String) -> Unit,
     onLoginAction: () -> Unit
 ) {
     ElevatedCard(
-        modifier = Modifier.width(350.dp), // Define un ancho exacto
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
-        )
+        modifier = Modifier.width(350.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 20.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text(
-                    text = "Iniciar sesión",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = Color.Black
-                )
-                Text(
-                    text = "Usuario",
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
+                Text("Iniciar sesión", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+
+                Text("Usuario", fontWeight = FontWeight.Bold)
+                // CONECTADO AL ESTADO
                 CustomOutlinedTextField(
-                    placeholder = "Tu usuario",
+                    value = usuarioValue,
+                    onValueChange = onUsuarioChange,
+                    placeholder = "admin",
                     icon = Icons.Outlined.AccountCircle
                 )
-                Text(
-                    text = "Contraseña",
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
+
+                Text("Contraseña", fontWeight = FontWeight.Bold)
+                // CONECTADO AL ESTADO
                 CustomOutlinedTextField(
-                    placeholder = "Tu contraseña",
+                    value = passwordValue,
+                    onValueChange = onPasswordChange,
+                    placeholder = "1234",
                     icon = Icons.Outlined.Lock,
                     isPassword = true
                 )
@@ -173,13 +191,10 @@ fun LoginCard(
             ) {
                 Button(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = { onLoginAction() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Principal,
-                        contentColor = Color.White
-                    ),
+                    onClick = { onLoginAction() }, // EJECUTA LA LÓGICA
+                    colors = ButtonDefaults.buttonColors(containerColor = Principal),
                     shape = RoundedCornerShape(10.dp)
-                ) {
+                ){
                     Text(
                         text = "Acceder",
                         fontWeight = FontWeight.Bold,
@@ -212,17 +227,17 @@ fun LoginCard(
 
 @Composable
 fun CustomOutlinedTextField(
+    value: String,              // <--- Nuevo
+    onValueChange: (String) -> Unit, // <--- Nuevo
     placeholder: String,
     icon: ImageVector,
     isPassword: Boolean = false
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
-    var text by remember { mutableStateOf("") }
-
 
     OutlinedTextField(
-        value = text,
-        onValueChange = { text = it },
+        value = value,           // <--- Usa el valor de fuera
+        onValueChange = onValueChange, // <--- Avisa hacia fuera
         modifier = Modifier.fillMaxWidth(),
         placeholder = { Text(text = placeholder) },
         leadingIcon = {
@@ -247,21 +262,15 @@ fun CustomOutlinedTextField(
         },
         shape = RoundedCornerShape(16.dp),
         colors = TextFieldDefaults.colors(
-            // Color del borde
             focusedIndicatorColor = Color.Gray,
             unfocusedIndicatorColor = Color.LightGray,
-            // Color del placeholder
             unfocusedPlaceholderColor = Color.LightGray,
-            // Color de icono principal
             focusedLeadingIconColor = Color.Gray,
             unfocusedLeadingIconColor = Color.LightGray,
-            // Color de fondo
             focusedContainerColor = Color.White,
             unfocusedContainerColor = Color.White,
-            // Color del icono secundario
             focusedTrailingIconColor = Color.Gray,
             unfocusedTrailingIconColor = Color.LightGray,
-            // Color del texto
             focusedTextColor = Color.Black,
             unfocusedTextColor = Color.Gray
         )
